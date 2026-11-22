@@ -11,12 +11,12 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Hanuman Transport - Mobile Smart App</title>
+<title>Open Bale Pavati Entry - Hanuman Transport</title>
 <style>
   * { box-sizing: border-box; font-family: Arial, sans-serif; }
   body { margin: 0; background: #eef2f7; color: #1a202c; }
   .header { background: #1f497d; color: #fff; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 20; gap: 6px; }
-  .header h1 { margin: 0; font-size: 15px; }
+  .header h1 { margin: 0; font-size: 14px; }
   .header small { color: #d8e6f8; font-size: 10px; }
   .hdr-btns { display: flex; gap: 5px; align-items: center; }
   .gear-btn { background: #16365c; color: #fff; border: 1px solid #6b9ed4; border-radius: 6px; padding: 6px 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
@@ -26,7 +26,7 @@
   .install-banner { display: none; background: #fffbeb; border: 1.5px solid #f59e0b; color: #78350f; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 12px; justify-content: space-between; align-items: center; gap: 8px; }
   .install-banner button { background: #1f497d; color: #fff; border: none; border-radius: 6px; padding: 7px 11px; font-weight: bold; font-size: 12px; cursor: pointer; flex-shrink: 0; }
   .card { background: #20b2aa; color: #fff; border-radius: 10px; padding: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.12); }
-  .card h2 { margin: 0 0 12px; font-size: 16px; text-align: center; letter-spacing: 0.5px; }
+  .card h2 { margin: 0 0 12px; font-size: 15px; text-align: center; letter-spacing: 0.4px; }
   .field { margin-bottom: 10px; }
   .field label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; }
   .input-group { display: flex; gap: 6px; }
@@ -45,11 +45,12 @@
   .recent-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 6px; }
   .recent-head h3 { margin: 0; font-size: 14px; color: #1f497d; }
   .filter-inp { padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; width: 145px; }
-  .item { border-bottom: 1px solid #e2e8f0; padding: 8px 2px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .item { border-bottom: 1px solid #e2e8f0; padding: 9px 2px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .item:last-child { border-bottom: none; }
-  .item-actions { display: flex; gap: 5px; flex-shrink: 0; }
-  .btn-slip { background: #128C7E; color: #fff; border: none; border-radius: 5px; padding: 6px 9px; font-size: 11px; font-weight: bold; cursor: pointer; }
-  .btn-wa { background: #25D366; color: #fff; border: none; border-radius: 5px; padding: 6px 9px; font-size: 11px; font-weight: bold; cursor: pointer; }
+  .grp-tag { display: inline-block; background: #e6fffa; color: #0f766e; border: 1px solid #99f6e4; border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: bold; margin-top: 2px; }
+  .item-actions { display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
+  .btn-grp-send { background: #128C7E; color: #fff; border: none; border-radius: 5px; padding: 6px 9px; font-size: 11px; font-weight: bold; cursor: pointer; }
+  .btn-slip { background: #25D366; color: #fff; border: none; border-radius: 5px; padding: 6px 9px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
   .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 50; justify-content: center; align-items: center; padding: 14px; }
   .modal-card { background: #fff; color: #111; width: 100%; max-width: 390px; border-radius: 12px; padding: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
@@ -70,19 +71,20 @@
   .cal-day:hover { background: #20b2aa; color: #fff; }
   .cal-today { background: #28a745; color: #fff; }
 
-  .slip-img-wrap { text-align: center; max-height: 360px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px; background: #f8fafc; margin-bottom: 10px; }
+  .slip-img-wrap { text-align: center; max-height: 330px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px; background: #f8fafc; margin-bottom: 10px; }
   .slip-img-wrap img { max-width: 100%; height: auto; border-radius: 4px; }
-  .slip-phone-row { display: flex; gap: 6px; margin-bottom: 8px; }
-  .slip-phone-row input { flex: 1; padding: 8px; border: 1px solid #94a3b8; border-radius: 6px; font-size: 14px; font-weight: bold; text-align: center; }
+  .slip-cfg-box { background: #f1f5f9; border-radius: 8px; padding: 8px; margin-bottom: 8px; }
+  .slip-cfg-box label { display: block; font-size: 11px; font-weight: bold; color: #334155; margin-bottom: 3px; }
+  .slip-cfg-box input { width: 100%; padding: 7px; border: 1px solid #94a3b8; border-radius: 6px; font-size: 13px; font-weight: bold; margin-bottom: 6px; }
   .slip-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .slip-btns button { padding: 10px; border: none; border-radius: 7px; font-weight: bold; font-size: 13px; cursor: pointer; color: #fff; }
+  .slip-btns button { padding: 10px; border: none; border-radius: 7px; font-weight: bold; font-size: 12px; cursor: pointer; color: #fff; }
 </style>
 </head>
 <body>
 <div class="header">
   <div>
-    <h1>HANUMAN TRANSPORT</h1>
-    <small id="syncMeta">MALEGAON • MASTER & DATA SYNC</small>
+    <h1>OPEN BALE PAVATI ENTRY</h1>
+    <small id="syncMeta">HANUMAN TRANSPORT • MALEGAON</small>
   </div>
   <div class="hdr-btns">
     <button class="install-btn" id="hdrInstallBtn" onclick="triggerInstallApp()">📲 INSTALL</button>
@@ -93,7 +95,7 @@
 
 <div class="container">
   <div class="install-banner" id="installBanner">
-    <span><b>Hanuman Transport App</b> apne mobile ki Home Screen par install karein!</span>
+    <span><b>Open Bale Pavati App</b> apne mobile ki Home Screen par install karein!</span>
     <button onclick="triggerInstallApp()">Install App</button>
   </div>
 
@@ -104,7 +106,7 @@
   </div>
 
   <div class="card">
-    <h2>MOBILE DATA ENTRY FORM</h2>
+    <h2>OPEN BALE PAVATI ENTRY</h2>
 
     <div class="row-2">
       <div class="field">
@@ -115,7 +117,7 @@
         </div>
       </div>
       <div class="field">
-        <label>P.NO. (Unique Serial)</label>
+        <label>Pavati No. (Unique Serial)</label>
         <input type="text" id="p_no" placeholder="1" onkeydown="handleEnter(event, 'bales')">
       </div>
     </div>
@@ -167,14 +169,14 @@
       </div>
     </div>
 
-    <button class="btn-save" id="saveBtn" onclick="submitEntry()">SAVE & SYNC ONLINE</button>
+    <button class="btn-save" id="saveBtn" onclick="submitEntry()">SAVE PAVATI & SYNC</button>
     <button class="btn-clear" onclick="clearForm()">CLEAR</button>
     <div class="status" id="statusMsg"></div>
   </div>
 
   <div class="recent">
     <div class="recent-head">
-      <h3>Live Data (PC + Mobile)</h3>
+      <h3>Pavati List (Party WA Group Send)</h3>
       <input type="text" id="dataFilterInp" class="filter-inp" placeholder="Search Party / No..." oninput="renderRecent()">
     </div>
     <div id="recentList"><div style="color:#64748b;font-size:12px;">Data load ho raha hai...</div></div>
@@ -212,22 +214,25 @@
   </div>
 </div>
 
-<!-- WHATSAPP SLIP PHOTO MODAL -->
+<!-- WHATSAPP SLIP & PARTY GROUP MODAL -->
 <div class="modal-backdrop" id="slipModal" onclick="backdropClose(event, 'slipModal')">
   <div class="modal-card">
     <div class="modal-head">
-      <h3 id="slipModalTitle">WhatsApp Slip Photo</h3>
+      <h3 id="slipModalTitle">Send Slip to Party WA Group</h3>
       <button class="close-x" onclick="closeModal('slipModal')">✕</button>
     </div>
     <div class="slip-img-wrap">
       <img id="slipPreviewImg" alt="Slip Preview">
     </div>
-    <div class="slip-phone-row">
+    <div class="slip-cfg-box">
+      <label>Party WhatsApp Group Name (Yaad rakhne ke liye):</label>
+      <input type="text" id="slipWaGroupName" placeholder="e.g. MTT Malegaon Group">
+      <label>WhatsApp No (Optional - Direct Chat ke liye):</label>
       <input type="tel" id="slipWaPhone" placeholder="10-digit WhatsApp No (Optional)">
     </div>
     <div class="slip-btns">
-      <button style="background:#25D366;" onclick="shareOrDownloadSlip()">📤 SHARE / SAVE SLIP</button>
-      <button style="background:#1f497d;" onclick="sendSlipTextWhatsApp()">💬 WA TEXT</button>
+      <button style="background:#25D366;" onclick="sendSlipPhotoToPartyWa()">📤 SEND SLIP PHOTO</button>
+      <button style="background:#1f497d;" onclick="sendSlipTextToPartyWa()">💬 SEND WA TEXT</button>
     </div>
   </div>
 </div>
@@ -236,6 +241,7 @@
 const STORAGE_URL_KEY = "ht_sync_url";
 const STORAGE_MASTER_KEY = "ht_master_cache";
 const STORAGE_DATA_KEY = "ht_cloud_records";
+const STORAGE_PARTY_GRP_KEY = "ht_party_wa_groups";
 
 let popupType = "";
 let popupNextField = "";
@@ -341,6 +347,29 @@ function closeModal(id) {
 
 function backdropClose(e, id) {
   if (e.target.id === id) closeModal(id);
+}
+
+/* --- PARTY WHATSAPP GROUP MAPPING --- */
+function getPartyGroupMap() {
+  try {
+    const obj = JSON.parse(localStorage.getItem(STORAGE_PARTY_GRP_KEY) || "{}");
+    return (obj && typeof obj === "object") ? obj : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function savePartyGroupName(partyName, groupName) {
+  const p = String(partyName || "").trim();
+  const g = String(groupName || "").trim();
+  if (!p) return;
+  const map = getPartyGroupMap();
+  if (g) {
+    map[p] = g;
+  } else {
+    delete map[p];
+  }
+  localStorage.setItem(STORAGE_PARTY_GRP_KEY, JSON.stringify(map));
 }
 
 /* --- SAFE MASTER CACHE & CLOUD PULL --- */
@@ -636,7 +665,7 @@ function pickTodayDate() {
   selectCalDate(todayStr());
 }
 
-/* --- LIVE DATA LIST & WHATSAPP SLIP PHOTO --- */
+/* --- PAVATI LIST & PARTY WHATSAPP GROUP SEND --- */
 function prependStoredRecord(item) {
   const list = getStoredRecords();
   list.unshift(item);
@@ -646,6 +675,7 @@ function prependStoredRecord(item) {
 
 function renderRecent() {
   const all = getStoredRecords();
+  const grpMap = getPartyGroupMap();
   const q = (document.getElementById("dataFilterInp").value || "").trim().toLowerCase();
   visibleRecords = q
     ? all.filter(r => `${r.v_date} ${r.party} ${r.p_no} ${r.token} ${r.quality} ${r.bale_no}`.toLowerCase().includes(q))
@@ -653,22 +683,29 @@ function renderRecent() {
 
   const box = document.getElementById("recentList");
   if (!visibleRecords.length) {
-    box.innerHTML = `<div style="color:#64748b;font-size:12px;">Koi entry nahi mili. 🔄 SYNC dabayein.</div>`;
+    box.innerHTML = `<div style="color:#64748b;font-size:12px;">Koi pavati nahi mili. 🔄 SYNC dabayein.</div>`;
     return;
   }
 
-  box.innerHTML = visibleRecords.map((r, idx) => `
-    <div class="item">
-      <div>
-        <b>#${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})<br>
-        <small style="color:#64748b;">${escapeHtml(r.v_date)} • ${escapeHtml(String(r.bales))} Bales${r.quality ? " • " + escapeHtml(r.quality) : ""}</small>
+  box.innerHTML = visibleRecords.map((r, idx) => {
+    const grp = grpMap[r.party] || "";
+    const grpBadge = grp
+      ? `<span class="grp-tag">WA Group: ${escapeHtml(grp)}</span>`
+      : `<span class="grp-tag" style="background:#f8fafc;color:#64748b;border-color:#cbd5e1;">Tap "Send WA Group" to set group</span>`;
+    return `
+      <div class="item">
+        <div>
+          <b>#${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})<br>
+          <small style="color:#64748b;">${escapeHtml(r.v_date)} • ${escapeHtml(String(r.bales))} Bales${r.quality ? " • " + escapeHtml(r.quality) : ""}</small><br>
+          ${grpBadge}
+        </div>
+        <div class="item-actions">
+          <button type="button" class="btn-grp-send" onclick="openSlipModal(${idx})">Send WA Group</button>
+          <button type="button" class="btn-slip" onclick="directSendToPartyWa(${idx})">Quick WA</button>
+        </div>
       </div>
-      <div class="item-actions">
-        <button type="button" class="btn-slip" onclick="openSlipModal(${idx})">WA Slip</button>
-        <button type="button" class="btn-wa" onclick="quickWaText(${idx})">WA Text</button>
-      </div>
-    </div>
-  `).join("");
+    `;
+  }).join("");
 }
 
 function buildSlipCanvas(r) {
@@ -761,7 +798,10 @@ function openSlipModal(idx) {
   const canvas = buildSlipCanvas(r);
   activeSlipDataUrl = canvas.toDataURL("image/png");
   document.getElementById("slipPreviewImg").src = activeSlipDataUrl;
-  document.getElementById("slipModalTitle").textContent = `Slip Photo - No. ${r.p_no || ""}`;
+  document.getElementById("slipModalTitle").textContent = `${r.party} • Pavati #${r.p_no || ""}`;
+
+  const grpMap = getPartyGroupMap();
+  document.getElementById("slipWaGroupName").value = grpMap[r.party] || "";
 
   const cache = getMasterCache();
   document.getElementById("slipWaPhone").value = (cache.phones && cache.phones[r.party]) || "";
@@ -773,7 +813,7 @@ function openSlipModal(idx) {
 function formatSlipText(r) {
   return [
     "*HANUMAN TRANSPORT - MALEGAON*",
-    `*No.:* ${r.p_no || "-"}  |  *Date:* ${r.v_date || ""}`,
+    `*Pavati No.:* ${r.p_no || "-"}  |  *Date:* ${r.v_date || ""}`,
     `*M/s.:* ${r.party || ""}`,
     `*Token:* ${r.token || "-"}`,
     `*Quality:* ${r.quality || "-"}`,
@@ -783,27 +823,67 @@ function formatSlipText(r) {
   ].join("\n");
 }
 
-function quickWaText(idx) {
-  const r = visibleRecords[idx];
-  if (!r) return;
-  const cache = getMasterCache();
-  let phone = ((cache.phones && cache.phones[r.party]) || "").replace(/\D/g, "");
-  if (phone.length === 10) phone = "91" + phone;
-  const text = encodeURIComponent(formatSlipText(r));
-  window.open(phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`, "_blank");
+function copyTextSafe(txt) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).catch(() => {});
+  }
 }
 
-function sendSlipTextWhatsApp() {
+async function directSendToPartyWa(idx) {
+  const r = visibleRecords[idx];
+  if (!r) return;
+  const grpMap = getPartyGroupMap();
+  const grpName = grpMap[r.party] || "";
+  const canvas = buildSlipCanvas(r);
+  const fileName = `Pavati_${r.p_no || "hanuman"}.png`;
+
+  copyTextSafe(formatSlipText(r));
+
+  if (navigator.share) {
+    try {
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+      if (blob) {
+        const file = new File([blob], fileName, { type: "image/png" });
+        if (!navigator.canShare || navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `Pavati #${r.p_no || ""} - ${r.party}`,
+            text: formatSlipText(r)
+          });
+          return;
+        }
+      }
+    } catch (e) {}
+  }
+
+  const text = encodeURIComponent(formatSlipText(r));
+  alert(grpName
+    ? `WhatsApp khul raha hai—"${grpName}" group me paste/send kar dein.`
+    : `WhatsApp khul raha hai—party group me send kar dein.`
+  );
+  window.open(`https://wa.me/?text=${text}`, "_blank");
+}
+
+function sendSlipTextToPartyWa() {
   if (!activeSlipItem) return;
+  const grpName = document.getElementById("slipWaGroupName").value.trim();
+  savePartyGroupName(activeSlipItem.party, grpName);
+  renderRecent();
+
   let phone = document.getElementById("slipWaPhone").value.replace(/\D/g, "");
   if (phone.length === 10) phone = "91" + phone;
   const text = encodeURIComponent(formatSlipText(activeSlipItem));
   window.open(phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`, "_blank");
 }
 
-async function shareOrDownloadSlip() {
+async function sendSlipPhotoToPartyWa() {
   if (!activeSlipItem) return;
-  const fileName = `Slip_${activeSlipItem.p_no || "hanuman"}.png`;
+  const grpName = document.getElementById("slipWaGroupName").value.trim();
+  savePartyGroupName(activeSlipItem.party, grpName);
+  renderRecent();
+
+  const fileName = `Pavati_${activeSlipItem.p_no || "hanuman"}.png`;
+  copyTextSafe(formatSlipText(activeSlipItem));
 
   if (navigator.share && activeSlipBlob) {
     try {
@@ -811,8 +891,8 @@ async function shareOrDownloadSlip() {
       if (!navigator.canShare || navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: `Hanuman Transport Slip #${activeSlipItem.p_no || ""}`,
-          text: `Hanuman Transport - ${activeSlipItem.party}`
+          title: `Pavati #${activeSlipItem.p_no || ""} - ${activeSlipItem.party}`,
+          text: formatSlipText(activeSlipItem)
         });
         return;
       }
@@ -826,7 +906,10 @@ async function shareOrDownloadSlip() {
 
   let phone = document.getElementById("slipWaPhone").value.replace(/\D/g, "");
   if (phone.length === 10) phone = "91" + phone;
-  alert("Slip photo download ho gayi hai. Ab WhatsApp khul raha hai—wahan se photo bhej dein.");
+  alert(grpName
+    ? `Slip photo download ho gayi hai. WhatsApp khul raha hai—"${grpName}" group me bhej dein.`
+    : "Slip photo download ho gayi hai. WhatsApp khul raha hai—party group me bhej dein."
+  );
   window.open(phone ? `https://wa.me/${phone}` : "https://web.whatsapp.com/", "_blank");
 }
 
@@ -860,14 +943,14 @@ async function submitEntry() {
 
   const pnoVal = document.getElementById("p_no").value.trim();
   if (!pnoVal) {
-    setStatus("P.NO. khali nahi reh sakta!", "#ffcccc");
+    setStatus("Pavati No. khali nahi reh sakta!", "#ffcccc");
     document.getElementById("p_no").focus();
     return;
   }
 
   if (isDuplicatePno(pnoVal)) {
-    setStatus(`Duplicate P.NO. (${pnoVal})! Ye P.NO. pehle se darj hai.`, "#ffcccc");
-    alert(`Duplicate P.NO.!\nP.NO. "${pnoVal}" pehle se entry me maujood hai. Kripya naya P.NO. dalein.`);
+    setStatus(`Duplicate Pavati No. (${pnoVal})! Ye pehle se darj hai.`, "#ffcccc");
+    alert(`Duplicate Pavati No.!\nPavati No. "${pnoVal}" pehle se entry me maujood hai. Kripya naya number dalein.`);
     document.getElementById("p_no").focus();
     return;
   }
@@ -892,10 +975,9 @@ async function submitEntry() {
   const btn = document.getElementById("saveBtn");
   btn.disabled = true;
   btn.textContent = "CHECKING & SYNCING...";
-  setStatus("Cloud me P.NO. check karke save kiya ja raha hai...");
+  setStatus("Cloud me Pavati No. check karke save kiya ja raha hai...");
 
   try {
-    // Cloud se latest records check karke duplicate P.NO. rokna
     const checkUrl = apiUrl + (apiUrl.includes("?") ? "&" : "?") + "t=" + Date.now();
     const checkRes = await fetch(checkUrl, { method: "GET", cache: "no-store" });
     const checkData = await checkRes.json();
@@ -904,8 +986,8 @@ async function submitEntry() {
       renderRecent();
       if (isDuplicatePno(pnoVal, checkData.records)) {
         applyNextSerialPno(checkData.records);
-        setStatus(`Duplicate P.NO. (${pnoVal})! Cloud me pehle se hai.`, "#ffcccc");
-        alert(`Duplicate P.NO.!\nP.NO. "${pnoVal}" cloud me pehle se save hai. Agla serial P.NO. set kar diya gaya hai.`);
+        setStatus(`Duplicate Pavati No. (${pnoVal})! Cloud me pehle se hai.`, "#ffcccc");
+        alert(`Duplicate Pavati No.!\nPavati No. "${pnoVal}" cloud me pehle se save hai. Agla serial set kar diya gaya hai.`);
         return;
       }
     }
@@ -919,7 +1001,7 @@ async function submitEntry() {
     if (json.status === "ok") {
       rememberMaster(payload.party, payload.token, payload.quality);
       prependStoredRecord(payload);
-      setStatus(`Saved! P.NO. ${payload.p_no} sync ho gaya.`, "#d4edda");
+      setStatus(`Saved! Pavati #${payload.p_no} sync ho gaya.`, "#d4edda");
       clearForm();
     } else {
       setStatus("Error: " + (json.message || "Sync failed"), "#ffcccc");
@@ -928,7 +1010,7 @@ async function submitEntry() {
     setStatus("Internet / URL check karein: " + err.message, "#ffcccc");
   } finally {
     btn.disabled = false;
-    btn.textContent = "SAVE & SYNC ONLINE";
+    btn.textContent = "SAVE PAVATI & SYNC";
   }
 }
 
