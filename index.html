@@ -31,6 +31,7 @@
   .field label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; }
   .input-group { display: flex; gap: 6px; }
   .field input { width: 100%; padding: 10px; border-radius: 6px; border: none; font-size: 15px; font-weight: bold; text-align: center; background: #fff; color: #111; }
+  .picker-input { cursor: pointer; caret-color: transparent; }
   .mini-btn { background: #16365c; color: #fff; border: none; border-radius: 6px; padding: 0 12px; font-size: 14px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
   .preview-box { background: #dcffdc !important; color: #c0392b !important; }
   .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -109,36 +110,36 @@
       <div class="field">
         <label>Date (Calendar 📅)</label>
         <div class="input-group">
-          <input type="text" id="v_date" onkeydown="handleEnter(event, 'party')">
+          <input type="text" id="v_date" readonly class="picker-input" onclick="openCalendarPopup()">
           <button type="button" class="mini-btn" onclick="openCalendarPopup()">📅</button>
         </div>
       </div>
       <div class="field">
-        <label>P.NO. (Auto Serial)</label>
-        <input type="text" id="p_no" placeholder="1" onkeydown="handleEnter(event, 'token')">
+        <label>P.NO. (Unique Serial)</label>
+        <input type="text" id="p_no" placeholder="1" onkeydown="handleEnter(event, 'bales')">
       </div>
     </div>
 
     <div class="field">
-      <label>Party Name (Tap / Enter for Popup)</label>
+      <label>Party Name (Tap for List)</label>
       <div class="input-group">
-        <input type="text" id="party" placeholder="Tap for Party Popup" onclick="openSearchPopup('party')" onkeydown="handlePopupEnter(event, 'party')">
+        <input type="text" id="party" readonly class="picker-input" placeholder="Tap for Party List" onclick="openSearchPopup('party')">
         <button type="button" class="mini-btn" onclick="openSearchPopup('party')">🔍</button>
       </div>
     </div>
 
     <div class="row-2">
       <div class="field">
-        <label>Token No (Popup)</label>
+        <label>Token No (Tap for List)</label>
         <div class="input-group">
-          <input type="text" id="token" placeholder="Token" onclick="openSearchPopup('token')" onkeydown="handlePopupEnter(event, 'token')">
+          <input type="text" id="token" readonly class="picker-input" placeholder="Tap for Token" onclick="openSearchPopup('token')">
           <button type="button" class="mini-btn" onclick="openSearchPopup('token')">🔍</button>
         </div>
       </div>
       <div class="field">
-        <label>Quality (Popup)</label>
+        <label>Quality (Tap for List)</label>
         <div class="input-group">
-          <input type="text" id="quality" placeholder="Quality" onclick="openSearchPopup('quality')" onkeydown="handlePopupEnter(event, 'quality')">
+          <input type="text" id="quality" readonly class="picker-input" placeholder="Tap for Quality" onclick="openSearchPopup('quality')">
           <button type="button" class="mini-btn" onclick="openSearchPopup('quality')">🔍</button>
         </div>
       </div>
@@ -150,15 +151,15 @@
         <input type="number" id="bales" inputmode="numeric" oninput="calcBales()" onkeydown="handleEnter(event, 'start_no')">
       </div>
       <div class="field">
-        <label>Start Bale No</label>
-        <input type="number" id="start_no" inputmode="numeric" oninput="calcBales()" onkeydown="handleEnter(event, 'than')">
+        <label>Start Bale No (Optional)</label>
+        <input type="number" id="start_no" inputmode="numeric" oninput="calcBales()" onkeydown="handleEnter(event, 'bale_no')">
       </div>
     </div>
 
     <div class="row-2">
       <div class="field">
-        <label>Bale No Preview</label>
-        <input type="text" id="bale_no" class="preview-box" readonly>
+        <label>Bale No (Auto / Manual)</label>
+        <input type="text" id="bale_no" class="preview-box" placeholder="Auto or Manual" onkeydown="handleEnter(event, 'than')">
       </div>
       <div class="field">
         <label>Than</label>
@@ -311,12 +312,11 @@ function setStatus(msg, color = "#fff3cd") {
 
 function calcBales() {
   const qty = parseInt(document.getElementById("bales").value, 10);
-  const start = parseInt(document.getElementById("start_no").value, 10);
+  const startRaw = document.getElementById("start_no").value.trim();
+  const start = parseInt(startRaw, 10);
   const out = document.getElementById("bale_no");
-  if (!isNaN(qty) && qty > 0 && !isNaN(start)) {
+  if (!isNaN(qty) && qty > 0 && startRaw !== "" && !isNaN(start)) {
     out.value = qty === 1 ? `${start}` : `${start} to ${start + qty - 1}`;
-  } else {
-    out.value = "";
   }
 }
 
@@ -325,13 +325,6 @@ function handleEnter(e, nextId) {
     e.preventDefault();
     const el = document.getElementById(nextId);
     if (el) el.focus();
-  }
-}
-
-function handlePopupEnter(e, type) {
-  if (e.key === "Enter") {
-    e.preventDefault();
-    openSearchPopup(type);
   }
 }
 
@@ -438,6 +431,13 @@ function saveStoredRecords(recs) {
   localStorage.setItem(STORAGE_DATA_KEY, JSON.stringify(Array.isArray(recs) ? recs : []));
 }
 
+function isDuplicatePno(pnoVal, recordsArr) {
+  const target = String(pnoVal || "").trim().toLowerCase();
+  if (!target) return false;
+  const list = Array.isArray(recordsArr) ? recordsArr : getStoredRecords();
+  return list.some(r => r && String(r.p_no || "").trim().toLowerCase() === target);
+}
+
 function applyNextSerialPno(recordsArr) {
   const list = Array.isArray(recordsArr) ? recordsArr : getStoredRecords();
   let maxNo = 0;
@@ -500,20 +500,22 @@ async function pullFromCloud(silent = true) {
   }
 }
 
-/* --- SMART SEARCH POPUP --- */
+/* --- SMART SEARCH POPUP (NO KEYBOARD ON FIELD TAP) --- */
 function openSearchPopup(type) {
+  if (document.activeElement && document.activeElement.blur) {
+    document.activeElement.blur();
+  }
   popupType = type;
-  const nextMap = { party: "p_no", token: "quality", quality: "bales" };
-  const titleMap = { party: "Search Party Name", token: "Search Token No", quality: "Search Quality" };
+  const nextMap = { party: "token", token: "quality", quality: "bales" };
+  const titleMap = { party: "Select Party Name", token: "Select Token No", quality: "Select Quality" };
   popupNextField = nextMap[type] || "bales";
 
-  document.getElementById("searchModalTitle").textContent = titleMap[type] || "Search";
+  document.getElementById("searchModalTitle").textContent = titleMap[type] || "Select";
   const inp = document.getElementById("searchModalInput");
-  inp.value = document.getElementById(type).value.trim();
+  inp.value = "";
 
   document.getElementById("searchModal").style.display = "flex";
   filterPopupList();
-  setTimeout(() => inp.focus(), 40);
 }
 
 function filterPopupList() {
@@ -535,7 +537,7 @@ function renderPopupOptions() {
     if (typed) {
       box.innerHTML = `<div class="popup-option active" onclick="pickPopupValue('${escapeHtml(typed)}')">+ Use New: "${escapeHtml(typed)}"</div>`;
     } else {
-      box.innerHTML = `<div style="padding:12px;color:#64748b;font-size:13px;">List khali hai. 🔄 SYNC dabayein ya naya naam type karein.</div>`;
+      box.innerHTML = `<div style="padding:12px;color:#64748b;font-size:13px;">List khali hai. 🔄 SYNC dabayein ya upar naya naam type karein.</div>`;
     }
     return;
   }
@@ -569,12 +571,17 @@ function onPopupSearchKey(e) {
 function pickPopupValue(val) {
   document.getElementById(popupType).value = val;
   closeModal("searchModal");
-  const nextEl = document.getElementById(popupNextField);
-  if (nextEl) nextEl.focus();
+  if (popupNextField === "bales") {
+    const balesEl = document.getElementById("bales");
+    if (balesEl) balesEl.focus();
+  }
 }
 
 /* --- CALENDAR POPUP --- */
 function openCalendarPopup() {
+  if (document.activeElement && document.activeElement.blur) {
+    document.activeElement.blur();
+  }
   const cur = document.getElementById("v_date").value.trim();
   const parts = cur.split("/");
   if (parts.length === 3) {
@@ -623,7 +630,6 @@ function renderCalendar() {
 function selectCalDate(val) {
   document.getElementById("v_date").value = val;
   closeModal("calendarModal");
-  document.getElementById("party").focus();
 }
 
 function pickTodayDate() {
@@ -634,7 +640,7 @@ function pickTodayDate() {
 function prependStoredRecord(item) {
   const list = getStoredRecords();
   list.unshift(item);
-  saveStoredRecords(list.slice(0, 100));
+  saveStoredRecords(list.slice(0, 200));
   renderRecent();
 }
 
@@ -834,12 +840,7 @@ function escapeHtml(str) {
 }
 
 function clearForm() {
-  const curPno = document.getElementById("p_no").value.trim();
-  if (/^\d+$/.test(curPno)) {
-    document.getElementById("p_no").value = String(parseInt(curPno, 10) + 1);
-  } else {
-    applyNextSerialPno();
-  }
+  applyNextSerialPno();
   document.getElementById("party").value = "";
   document.getElementById("token").value = "";
   document.getElementById("quality").value = "";
@@ -847,7 +848,6 @@ function clearForm() {
   document.getElementById("start_no").value = "";
   document.getElementById("bale_no").value = "";
   document.getElementById("than").value = "";
-  document.getElementById("party").focus();
 }
 
 async function submitEntry() {
@@ -858,11 +858,25 @@ async function submitEntry() {
     return;
   }
 
+  const pnoVal = document.getElementById("p_no").value.trim();
+  if (!pnoVal) {
+    setStatus("P.NO. khali nahi reh sakta!", "#ffcccc");
+    document.getElementById("p_no").focus();
+    return;
+  }
+
+  if (isDuplicatePno(pnoVal)) {
+    setStatus(`Duplicate P.NO. (${pnoVal})! Ye P.NO. pehle se darj hai.`, "#ffcccc");
+    alert(`Duplicate P.NO.!\nP.NO. "${pnoVal}" pehle se entry me maujood hai. Kripya naya P.NO. dalein.`);
+    document.getElementById("p_no").focus();
+    return;
+  }
+
   const payload = {
     sync_id: "MOB-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
     v_date: document.getElementById("v_date").value.trim() || todayStr(),
     party: document.getElementById("party").value.trim(),
-    p_no: document.getElementById("p_no").value.trim(),
+    p_no: pnoVal,
     token: document.getElementById("token").value.trim(),
     quality: document.getElementById("quality").value.trim(),
     bales: parseInt(document.getElementById("bales").value, 10) || 0,
@@ -871,16 +885,31 @@ async function submitEntry() {
   };
 
   if (!payload.party || !payload.bales || !payload.bale_no) {
-    setStatus("Party, Total Bales aur Start Bale No zaroori hai!", "#ffcccc");
+    setStatus("Party, Total Bales aur Bale No zaroori hai!", "#ffcccc");
     return;
   }
 
   const btn = document.getElementById("saveBtn");
   btn.disabled = true;
-  btn.textContent = "SYNCING...";
-  setStatus("PC software ke liye bheja ja raha hai...");
+  btn.textContent = "CHECKING & SYNCING...";
+  setStatus("Cloud me P.NO. check karke save kiya ja raha hai...");
 
   try {
+    // Cloud se latest records check karke duplicate P.NO. rokna
+    const checkUrl = apiUrl + (apiUrl.includes("?") ? "&" : "?") + "t=" + Date.now();
+    const checkRes = await fetch(checkUrl, { method: "GET", cache: "no-store" });
+    const checkData = await checkRes.json();
+    if (checkData && checkData.status === "ok" && Array.isArray(checkData.records)) {
+      saveStoredRecords(checkData.records.slice().reverse());
+      renderRecent();
+      if (isDuplicatePno(pnoVal, checkData.records)) {
+        applyNextSerialPno(checkData.records);
+        setStatus(`Duplicate P.NO. (${pnoVal})! Cloud me pehle se hai.`, "#ffcccc");
+        alert(`Duplicate P.NO.!\nP.NO. "${pnoVal}" cloud me pehle se save hai. Agla serial P.NO. set kar diya gaya hai.`);
+        return;
+      }
+    }
+
     const res = await fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -890,7 +919,7 @@ async function submitEntry() {
     if (json.status === "ok") {
       rememberMaster(payload.party, payload.token, payload.quality);
       prependStoredRecord(payload);
-      setStatus(`Saved! P.NO. ${payload.p_no || "-"} sync ho gaya.`, "#d4edda");
+      setStatus(`Saved! P.NO. ${payload.p_no} sync ho gaya.`, "#d4edda");
       clearForm();
     } else {
       setStatus("Error: " + (json.message || "Sync failed"), "#ffcccc");
