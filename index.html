@@ -48,9 +48,10 @@
   .item { border-bottom: 1px solid #e2e8f0; padding: 9px 2px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .item:last-child { border-bottom: none; }
   .grp-tag { display: inline-block; background: #e6fffa; color: #0f766e; border: 1px solid #99f6e4; border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: bold; margin-top: 2px; }
-  .item-actions { display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
-  .btn-grp-send { background: #128C7E; color: #fff; border: none; border-radius: 5px; padding: 6px 9px; font-size: 11px; font-weight: bold; cursor: pointer; }
-  .btn-slip { background: #25D366; color: #fff; border: none; border-radius: 5px; padding: 6px 9px; font-size: 11px; font-weight: bold; cursor: pointer; }
+  .item-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; flex-shrink: 0; width: 148px; }
+  .btn-grp-send { grid-column: 1 / -1; background: #0f766e; color: #fff; border: none; border-radius: 5px; padding: 6px 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
+  .btn-slip { background: #128C7E; color: #fff; border: none; border-radius: 5px; padding: 6px 6px; font-size: 10px; font-weight: bold; cursor: pointer; }
+  .btn-wa { background: #25D366; color: #fff; border: none; border-radius: 5px; padding: 6px 6px; font-size: 10px; font-weight: bold; cursor: pointer; }
 
   .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 50; justify-content: center; align-items: center; padding: 14px; }
   .modal-card { background: #fff; color: #111; width: 100%; max-width: 390px; border-radius: 12px; padding: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
@@ -71,7 +72,7 @@
   .cal-day:hover { background: #20b2aa; color: #fff; }
   .cal-today { background: #28a745; color: #fff; }
 
-  .slip-img-wrap { text-align: center; max-height: 330px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px; background: #f8fafc; margin-bottom: 10px; }
+  .slip-img-wrap { text-align: center; max-height: 310px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px; background: #f8fafc; margin-bottom: 10px; }
   .slip-img-wrap img { max-width: 100%; height: auto; border-radius: 4px; }
   .slip-cfg-box { background: #f1f5f9; border-radius: 8px; padding: 8px; margin-bottom: 8px; }
   .slip-cfg-box label { display: block; font-size: 11px; font-weight: bold; color: #334155; margin-bottom: 3px; }
@@ -176,7 +177,7 @@
 
   <div class="recent">
     <div class="recent-head">
-      <h3>Pavati List (Party WA Group Send)</h3>
+      <h3>Pavati List (Manual Photo / Text / Group)</h3>
       <input type="text" id="dataFilterInp" class="filter-inp" placeholder="Search Party / No..." oninput="renderRecent()">
     </div>
     <div id="recentList"><div style="color:#64748b;font-size:12px;">Data load ho raha hai...</div></div>
@@ -214,11 +215,11 @@
   </div>
 </div>
 
-<!-- WHATSAPP SLIP & PARTY GROUP MODAL -->
+<!-- WHATSAPP SLIP PHOTO & PARTY GROUP MODAL -->
 <div class="modal-backdrop" id="slipModal" onclick="backdropClose(event, 'slipModal')">
   <div class="modal-card">
     <div class="modal-head">
-      <h3 id="slipModalTitle">Send Slip to Party WA Group</h3>
+      <h3 id="slipModalTitle">Pavati Slip & Group</h3>
       <button class="close-x" onclick="closeModal('slipModal')">✕</button>
     </div>
     <div class="slip-img-wrap">
@@ -231,8 +232,8 @@
       <input type="tel" id="slipWaPhone" placeholder="10-digit WhatsApp No (Optional)">
     </div>
     <div class="slip-btns">
-      <button style="background:#25D366;" onclick="sendSlipPhotoToPartyWa()">📤 SEND SLIP PHOTO</button>
-      <button style="background:#1f497d;" onclick="sendSlipTextToPartyWa()">💬 SEND WA TEXT</button>
+      <button style="background:#128C7E;" onclick="shareSlipPhotoOnly()">🖼️ SLIP PHOTO ONLY</button>
+      <button style="background:#25D366;" onclick="sendSlipTextOnly()">💬 TEXT ONLY</button>
     </div>
   </div>
 </div>
@@ -665,7 +666,7 @@ function pickTodayDate() {
   selectCalDate(todayStr());
 }
 
-/* --- PAVATI LIST & PARTY WHATSAPP GROUP SEND --- */
+/* --- PAVATI LIST & MANUAL PHOTO / TEXT / GROUP CONTROLS --- */
 function prependStoredRecord(item) {
   const list = getStoredRecords();
   list.unshift(item);
@@ -691,7 +692,7 @@ function renderRecent() {
     const grp = grpMap[r.party] || "";
     const grpBadge = grp
       ? `<span class="grp-tag">WA Group: ${escapeHtml(grp)}</span>`
-      : `<span class="grp-tag" style="background:#f8fafc;color:#64748b;border-color:#cbd5e1;">Tap "Send WA Group" to set group</span>`;
+      : `<span class="grp-tag" style="background:#f8fafc;color:#64748b;border-color:#cbd5e1;">Group set karein: "Group / Slip"</span>`;
     return `
       <div class="item">
         <div>
@@ -700,8 +701,9 @@ function renderRecent() {
           ${grpBadge}
         </div>
         <div class="item-actions">
-          <button type="button" class="btn-grp-send" onclick="openSlipModal(${idx})">Send WA Group</button>
-          <button type="button" class="btn-slip" onclick="directSendToPartyWa(${idx})">Quick WA</button>
+          <button type="button" class="btn-grp-send" onclick="openSlipModal(${idx})">Group / Slip</button>
+          <button type="button" class="btn-slip" onclick="manualPhotoOnly(${idx})">WA Slip</button>
+          <button type="button" class="btn-wa" onclick="manualTextOnly(${idx})">WA Text</button>
         </div>
       </div>
     `;
@@ -829,15 +831,13 @@ function copyTextSafe(txt) {
   }
 }
 
-async function directSendToPartyWa(idx) {
+async function manualPhotoOnly(idx) {
   const r = visibleRecords[idx];
   if (!r) return;
   const grpMap = getPartyGroupMap();
   const grpName = grpMap[r.party] || "";
   const canvas = buildSlipCanvas(r);
   const fileName = `Pavati_${r.p_no || "hanuman"}.png`;
-
-  copyTextSafe(formatSlipText(r));
 
   if (navigator.share) {
     try {
@@ -847,8 +847,7 @@ async function directSendToPartyWa(idx) {
         if (!navigator.canShare || navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
-            title: `Pavati #${r.p_no || ""} - ${r.party}`,
-            text: formatSlipText(r)
+            title: `Pavati #${r.p_no || ""}`
           });
           return;
         }
@@ -856,15 +855,32 @@ async function directSendToPartyWa(idx) {
     } catch (e) {}
   }
 
-  const text = encodeURIComponent(formatSlipText(r));
+  const a = document.createElement("a");
+  a.href = canvas.toDataURL("image/png");
+  a.download = fileName;
+  a.click();
   alert(grpName
-    ? `WhatsApp khul raha hai—"${grpName}" group me paste/send kar dein.`
-    : `WhatsApp khul raha hai—party group me send kar dein.`
+    ? `Slip photo download ho gayi hai. WhatsApp me "${grpName}" group kholkar photo attach karein.`
+    : "Slip photo download ho gayi hai. WhatsApp me party group kholkar photo attach karein."
   );
-  window.open(`https://wa.me/?text=${text}`, "_blank");
+  window.open("https://web.whatsapp.com/", "_blank");
 }
 
-function sendSlipTextToPartyWa() {
+function manualTextOnly(idx) {
+  const r = visibleRecords[idx];
+  if (!r) return;
+  const grpMap = getPartyGroupMap();
+  const grpName = grpMap[r.party] || "";
+  const txt = formatSlipText(r);
+  copyTextSafe(txt);
+  alert(grpName
+    ? `Text copy ho gaya hai! WhatsApp khul raha hai—"${grpName}" group me paste karke send karein.`
+    : "Text copy ho gaya hai! WhatsApp khul raha hai—party group me paste karke send karein."
+  );
+  window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, "_blank");
+}
+
+function sendSlipTextOnly() {
   if (!activeSlipItem) return;
   const grpName = document.getElementById("slipWaGroupName").value.trim();
   savePartyGroupName(activeSlipItem.party, grpName);
@@ -872,18 +888,18 @@ function sendSlipTextToPartyWa() {
 
   let phone = document.getElementById("slipWaPhone").value.replace(/\D/g, "");
   if (phone.length === 10) phone = "91" + phone;
-  const text = encodeURIComponent(formatSlipText(activeSlipItem));
-  window.open(phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`, "_blank");
+  const text = formatSlipText(activeSlipItem);
+  copyTextSafe(text);
+  window.open(phone ? `https://wa.me/${phone}?text=${encodeURIComponent(text)}` : `https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
 }
 
-async function sendSlipPhotoToPartyWa() {
+async function shareSlipPhotoOnly() {
   if (!activeSlipItem) return;
   const grpName = document.getElementById("slipWaGroupName").value.trim();
   savePartyGroupName(activeSlipItem.party, grpName);
   renderRecent();
 
   const fileName = `Pavati_${activeSlipItem.p_no || "hanuman"}.png`;
-  copyTextSafe(formatSlipText(activeSlipItem));
 
   if (navigator.share && activeSlipBlob) {
     try {
@@ -891,8 +907,7 @@ async function sendSlipPhotoToPartyWa() {
       if (!navigator.canShare || navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: `Pavati #${activeSlipItem.p_no || ""} - ${activeSlipItem.party}`,
-          text: formatSlipText(activeSlipItem)
+          title: `Pavati #${activeSlipItem.p_no || ""}`
         });
         return;
       }
