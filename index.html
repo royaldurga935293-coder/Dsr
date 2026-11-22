@@ -45,9 +45,11 @@
   .dash-box { background: #fff; border-radius: 10px; padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
   .dash-box-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 6px; }
   .dash-box-head h3 { margin: 0; font-size: 14px; color: #1f497d; }
-  .dash-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .dash-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
   .dash-filters select, .dash-filters input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: bold; background: #f8fafc; color: #111; }
-  .btn-wa-sum { width: 100%; background: #25D366; color: #fff; border: none; border-radius: 7px; padding: 10px; font-size: 13px; font-weight: bold; cursor: pointer; }
+  .dash-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btn-rep-photo { width: 100%; background: #1f497d; color: #fff; border: none; border-radius: 7px; padding: 10px 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
+  .btn-wa-sum { width: 100%; background: #25D366; color: #fff; border: none; border-radius: 7px; padding: 10px 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
 
   .party-row { padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
   .party-row:last-child { border-bottom: none; }
@@ -86,7 +88,7 @@
   .btn-wa { background: #25D366; color: #fff; border: none; border-radius: 5px; padding: 6px 6px; font-size: 10px; font-weight: bold; cursor: pointer; }
 
   .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 50; justify-content: center; align-items: center; padding: 14px; }
-  .modal-card { background: #fff; color: #111; width: 100%; max-width: 390px; border-radius: 12px; padding: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+  .modal-card { background: #fff; color: #111; width: 100%; max-width: 410px; border-radius: 12px; padding: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
   .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
   .modal-head h3 { margin: 0; font-size: 15px; color: #1f497d; }
   .close-x { background: #dc3545; color: #fff; border: none; border-radius: 6px; padding: 4px 9px; font-weight: bold; cursor: pointer; }
@@ -104,7 +106,7 @@
   .cal-day:hover { background: #20b2aa; color: #fff; }
   .cal-today { background: #28a745; color: #fff; }
 
-  .slip-img-wrap { text-align: center; max-height: 310px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px; background: #f8fafc; margin-bottom: 10px; }
+  .slip-img-wrap { text-align: center; max-height: 360px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px; background: #f8fafc; margin-bottom: 10px; }
   .slip-img-wrap img { max-width: 100%; height: auto; border-radius: 4px; }
   .slip-cfg-box { background: #f1f5f9; border-radius: 8px; padding: 8px; margin-bottom: 8px; }
   .slip-cfg-box label { display: block; font-size: 11px; font-weight: bold; color: #334155; margin-bottom: 3px; }
@@ -250,7 +252,7 @@
 
     <div class="dash-box">
       <div class="dash-box-head">
-        <h3>Filter & Daily WhatsApp Report</h3>
+        <h3>Register Report Photo & WA Summary</h3>
         <button type="button" class="mini-btn" style="padding:5px 9px;font-size:11px;" onclick="resetDashFilters()">ALL</button>
       </div>
       <div class="dash-filters">
@@ -261,8 +263,15 @@
           <option value="ALL">ALL DATES</option>
         </select>
       </div>
+      <div class="dash-filters">
+        <input type="text" id="repToInput" placeholder="To (e.g. Malegaon / Surat)">
+        <input type="text" id="repPageNoInput" placeholder="Page No. (e.g. 535)">
+      </div>
       <div id="dashFilteredSummary" style="font-size:12px;font-weight:bold;color:#1f497d;margin-bottom:8px;">Filtered: 0 Pavati • 0 Bales</div>
-      <button type="button" class="btn-wa-sum" onclick="sendDashboardWhatsApp()">📤 SEND REPORT ON WHATSAPP</button>
+      <div class="dash-btn-row">
+        <button type="button" class="btn-rep-photo" onclick="openRegisterReportModal()">🖼️ REPORT PHOTO</button>
+        <button type="button" class="btn-wa-sum" onclick="sendDashboardWhatsApp()">💬 WA TEXT REPORT</button>
+      </div>
     </div>
 
     <div class="dash-box">
@@ -337,6 +346,23 @@
   </div>
 </div>
 
+<!-- REGISTER LEDGER REPORT PHOTO MODAL -->
+<div class="modal-backdrop" id="reportPhotoModal" onclick="backdropClose(event, 'reportPhotoModal')">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>Register Ledger Report Photo</h3>
+      <button class="close-x" onclick="closeModal('reportPhotoModal')">✕</button>
+    </div>
+    <div class="slip-img-wrap" style="max-height:420px;">
+      <img id="reportPreviewImg" alt="Register Report Preview">
+    </div>
+    <div class="slip-btns">
+      <button style="background:#128C7E;" onclick="shareRegisterReportPhoto()">📤 SHARE PHOTO</button>
+      <button style="background:#1f497d;" onclick="downloadRegisterReportPhoto()">⬇️ DOWNLOAD PNG</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const STORAGE_URL_KEY = "ht_sync_url";
 const STORAGE_MASTER_KEY = "ht_master_cache";
@@ -353,6 +379,8 @@ let calMonth = new Date().getMonth();
 let activeSlipItem = null;
 let activeSlipDataUrl = "";
 let activeSlipBlob = null;
+let activeReportDataUrl = "";
+let activeReportBlob = null;
 let visibleRecords = [];
 let dashFilteredRows = [];
 let deferredInstallPrompt = null;
@@ -772,6 +800,270 @@ function renderDashboard() {
       </div>
     `).join("");
   }
+}
+
+/* --- REGISTER LEDGER REPORT PHOTO GENERATOR (MATCHING UPLOADED REGISTER DESIGN) --- */
+function getMonthLabelFromRows(rows) {
+  const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  for (const r of rows) {
+    const parts = String(r.v_date || "").split("/");
+    if (parts.length === 3) {
+      const m = parseInt(parts[1], 10);
+      if (m >= 1 && m <= 12) return `${monthNames[m - 1]} ${parts[2]}`;
+    }
+  }
+  const now = new Date();
+  return `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+}
+
+function buildRegisterReportCanvas(rows) {
+  const orderedRows = rows.slice().reverse();
+  const minRows = 16;
+  const totalSlots = Math.max(minRows, orderedRows.length);
+  const rowH = 44;
+
+  const W = 900;
+  const headerBottomY = 265;
+  const tableHeaderH = 48;
+  const footerH = 72;
+  const H = headerBottomY + tableHeaderH + (totalSlots * rowH) + footerH + 30;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d");
+
+  // White paper background
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, W, H);
+
+  // Outer Register Border
+  const M = 28;
+  ctx.strokeStyle = "#1a1a1a";
+  ctx.lineWidth = 2.5;
+  ctx.strokeRect(M, M, W - (M * 2), H - (M * 2));
+
+  // Top Logo Badge + Company Title
+  ctx.strokeStyle = "#1a1a1a";
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(88, 78, 28, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(46, 65, 84, 24);
+  ctx.fillStyle = "#111111";
+  ctx.font = "bold 20px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("HT", 88, 84);
+  ctx.textAlign = "left";
+
+  ctx.fillStyle = "#111111";
+  ctx.font = "bold 42px Georgia, serif";
+  ctx.fillText("Hanuman Transport", 155, 92);
+
+  // Divider line below title
+  ctx.strokeStyle = "#222222";
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.moveTo(M, 118);
+  ctx.lineTo(W - M, 118);
+  ctx.stroke();
+
+  // Header Metadata Lines (Party Name, Month, Mobile No., To, Page No.)
+  const selP = document.getElementById("dashPartyFilter").value;
+  const partyVal = selP === "ALL" ? "ALL PARTIES" : selP;
+  const monthVal = getMonthLabelFromRows(orderedRows);
+  const cache = getMasterCache();
+  const mobileVal = (selP !== "ALL" && cache.phones && cache.phones[selP]) ? cache.phones[selP] : "";
+  const toVal = document.getElementById("repToInput").value.trim();
+  const pageNoVal = document.getElementById("repPageNoInput").value.trim() || "1";
+
+  ctx.font = "bold 19px Arial";
+  ctx.fillStyle = "#111111";
+
+  // Row 1: Party Name & To
+  ctx.fillText("Party Name", 42, 158);
+  ctx.beginPath(); ctx.moveTo(158, 162); ctx.lineTo(540, 162); ctx.stroke();
+  ctx.fillStyle = "#1a237e";
+  ctx.fillText(partyVal, 168, 156);
+
+  ctx.fillStyle = "#111111";
+  ctx.fillText("To", 552, 158);
+  ctx.beginPath(); ctx.moveTo(585, 162); ctx.lineTo(W - 42, 162); ctx.stroke();
+  ctx.fillStyle = "#1a237e";
+  ctx.fillText(toVal, 595, 156);
+
+  // Row 2: Month & Page No.
+  ctx.fillStyle = "#111111";
+  ctx.fillText("Month", 42, 202);
+  ctx.beginPath(); ctx.moveTo(112, 206); ctx.lineTo(540, 206); ctx.stroke();
+  ctx.fillStyle = "#1a237e";
+  ctx.fillText(monthVal, 125, 200);
+
+  ctx.fillStyle = "#111111";
+  ctx.fillText("Page No.", 552, 202);
+  ctx.beginPath(); ctx.moveTo(645, 206); ctx.lineTo(W - 42, 206); ctx.stroke();
+  ctx.fillStyle = "#b91c1c";
+  ctx.font = "bold 25px Georgia, serif";
+  ctx.fillText(pageNoVal, 710, 199);
+
+  // Row 3: Mobile No.
+  ctx.font = "bold 19px Arial";
+  ctx.fillStyle = "#111111";
+  ctx.fillText("Mobile No.", 42, 246);
+  ctx.beginPath(); ctx.moveTo(148, 250); ctx.lineTo(540, 250); ctx.stroke();
+  ctx.fillStyle = "#1a237e";
+  ctx.fillText(mobileVal, 162, 244);
+
+  // Table Column X Positions: Date | Token | Bale No. | Qty. | P. No.
+  const c0 = M;
+  const c1 = 158; // Date
+  const c2 = 278; // Token
+  const c3 = 655; // Bale No.
+  const c4 = 762; // Qty.
+  const c5 = W - M; // P. No.
+
+  // Dark Table Header Strip
+  ctx.fillStyle = "#1f2428";
+  ctx.fillRect(c0, headerBottomY, c5 - c0, tableHeaderH);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 20px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("Date", (c0 + c1) / 2, headerBottomY + 31);
+  ctx.fillText("Token", (c1 + c2) / 2, headerBottomY + 31);
+  ctx.fillText("Bale No.", (c2 + c3) / 2, headerBottomY + 31);
+  ctx.fillText("Qty.", (c3 + c4) / 2, headerBottomY + 31);
+  ctx.fillText("P. No.", (c4 + c5) / 2, headerBottomY + 31);
+
+  // White header separators
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 1.5;
+  for (const x of [c1, c2, c3, c4]) {
+    ctx.beginPath();
+    ctx.moveTo(x, headerBottomY);
+    ctx.lineTo(x, headerBottomY + tableHeaderH);
+    ctx.stroke();
+  }
+
+  // Table Rows + Ruled Lines
+  const rowsStartY = headerBottomY + tableHeaderH;
+  let sumQty = 0;
+
+  for (let i = 0; i < totalSlots; i++) {
+    const yTop = rowsStartY + (i * rowH);
+    const yBot = yTop + rowH;
+    const yText = yTop + 30;
+
+    ctx.strokeStyle = "#2b2b2b";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(c0, yBot);
+    ctx.lineTo(c5, yBot);
+    ctx.stroke();
+
+    const r = orderedRows[i];
+    if (r) {
+      const q = parseInt(r.bales, 10) || 0;
+      sumQty += q;
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "bold 17px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(String(r.v_date || ""), (c0 + c1) / 2, yText);
+      ctx.fillText(String(r.token || ""), (c1 + c2) / 2, yText);
+
+      ctx.textAlign = "left";
+      const baleText = selP === "ALL"
+        ? `${r.party || ""} • ${r.bale_no || ""}`
+        : String(r.bale_no || "");
+      ctx.fillText(baleText.slice(0, 34), c2 + 12, yText);
+
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#1a237e";
+      ctx.fillText(String(q), (c3 + c4) / 2, yText);
+
+      ctx.fillStyle = "#b91c1c";
+      ctx.fillText(String(r.p_no || ""), (c4 + c5) / 2, yText);
+    }
+  }
+
+  // Vertical Column Borders down to Total Row
+  const totalRowTop = rowsStartY + (totalSlots * rowH);
+  const totalRowBot = totalRowTop + 48;
+
+  ctx.strokeStyle = "#1a1a1a";
+  ctx.lineWidth = 1.8;
+  for (const x of [c1, c2, c3, c4]) {
+    ctx.beginPath();
+    ctx.moveTo(x, rowsStartY);
+    ctx.lineTo(x, totalRowBot);
+    ctx.stroke();
+  }
+
+  // Total Footer Row
+  ctx.fillStyle = "#f1f5f9";
+  ctx.fillRect(c0 + 1, totalRowTop + 1, (c5 - c0) - 2, 46);
+  ctx.strokeStyle = "#1a1a1a";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(c0, totalRowBot);
+  ctx.lineTo(c5, totalRowBot);
+  ctx.stroke();
+
+  ctx.fillStyle = "#111111";
+  ctx.font = "bold 20px Arial";
+  ctx.textAlign = "right";
+  ctx.fillText(`TOTAL (${orderedRows.length} Pavati) :`, c3 - 14, totalRowTop + 31);
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#b91c1c";
+  ctx.font = "bold 22px Arial";
+  ctx.fillText(String(sumQty), (c3 + c4) / 2, totalRowTop + 32);
+
+  ctx.textAlign = "left";
+  return canvas;
+}
+
+function openRegisterReportModal() {
+  if (!dashFilteredRows.length) {
+    alert("Report photo banane ke liye pehle koi Pavati data hona zaroori hai!");
+    return;
+  }
+  const canvas = buildRegisterReportCanvas(dashFilteredRows);
+  activeReportDataUrl = canvas.toDataURL("image/png");
+  document.getElementById("reportPreviewImg").src = activeReportDataUrl;
+  canvas.toBlob(blob => { activeReportBlob = blob; }, "image/png");
+  document.getElementById("reportPhotoModal").style.display = "flex";
+}
+
+async function shareRegisterReportPhoto() {
+  const selP = document.getElementById("dashPartyFilter").value;
+  const safeName = selP.replace(/[^a-zA-Z0-9_-]/g, "_");
+  const fileName = `Hanuman_Report_${safeName}.png`;
+
+  if (navigator.share && activeReportBlob) {
+    try {
+      const file = new File([activeReportBlob], fileName, { type: "image/png" });
+      if (!navigator.canShare || navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `Hanuman Transport Report - ${selP}`
+        });
+        return;
+      }
+    } catch (e) {}
+  }
+  downloadRegisterReportPhoto();
+}
+
+function downloadRegisterReportPhoto() {
+  const selP = document.getElementById("dashPartyFilter").value;
+  const safeName = selP.replace(/[^a-zA-Z0-9_-]/g, "_");
+  const a = document.createElement("a");
+  a.href = activeReportDataUrl;
+  a.download = `Hanuman_Report_${safeName}.png`;
+  a.click();
 }
 
 function sendDashboardWhatsApp() {
