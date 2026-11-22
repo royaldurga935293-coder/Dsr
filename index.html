@@ -11,20 +11,52 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Hanuman Transport - Open Bale Pavati Entry</title>
+<title>Hanuman Transport - Smart App</title>
 <style>
   * { box-sizing: border-box; font-family: Arial, sans-serif; }
   body { margin: 0; background: #eef2f7; color: #1a202c; }
-  .header { background: #1f497d; color: #fff; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 20; gap: 6px; }
-  .header h1 { margin: 0; font-size: 14px; }
+  .header { background: #1f497d; color: #fff; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 25; gap: 6px; }
+  .header h1 { margin: 0; font-size: 14px; letter-spacing: 0.3px; }
   .header small { color: #d8e6f8; font-size: 10px; }
   .hdr-btns { display: flex; gap: 5px; align-items: center; }
   .gear-btn { background: #16365c; color: #fff; border: 1px solid #6b9ed4; border-radius: 6px; padding: 6px 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
   .sync-btn { background: #25D366; color: #fff; border: none; border-radius: 6px; padding: 6px 9px; font-size: 11px; font-weight: bold; cursor: pointer; }
   .install-btn { display: none; background: #f59e0b; color: #111; border: none; border-radius: 6px; padding: 6px 9px; font-size: 11px; font-weight: bold; cursor: pointer; }
-  .container { max-width: 520px; margin: 12px auto; padding: 0 12px 36px; }
+
+  .nav-tabs { max-width: 520px; margin: 10px auto 0; padding: 0 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tab-btn { padding: 10px; border: 1.5px solid #cbd5e1; border-radius: 8px; background: #fff; color: #1f497d; font-size: 13px; font-weight: bold; cursor: pointer; text-align: center; }
+  .tab-btn.active { background: #1f497d; color: #fff; border-color: #1f497d; box-shadow: 0 2px 6px rgba(31,73,125,0.25); }
+
+  .container { max-width: 520px; margin: 10px auto; padding: 0 12px 36px; }
   .install-banner { display: none; background: #fffbeb; border: 1.5px solid #f59e0b; color: #78350f; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 12px; justify-content: space-between; align-items: center; gap: 8px; }
   .install-banner button { background: #1f497d; color: #fff; border: none; border-radius: 6px; padding: 7px 11px; font-weight: bold; font-size: 12px; cursor: pointer; flex-shrink: 0; }
+
+  /* SMART DASHBOARD STYLES */
+  .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .kpi-card { border-radius: 10px; padding: 13px 14px; color: #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
+  .kpi-card small { display: block; font-size: 11px; font-weight: bold; opacity: 0.92; text-transform: uppercase; }
+  .kpi-card .val { font-size: 24px; font-weight: bold; margin: 4px 0 2px; }
+  .kpi-card .sub { font-size: 11px; opacity: 0.9; }
+  .kpi-green { background: linear-gradient(135deg, #16a34a, #15803d); }
+  .kpi-blue { background: linear-gradient(135deg, #1f497d, #16365c); }
+  .kpi-teal { background: linear-gradient(135deg, #0d9488, #0f766e); }
+  .kpi-orange { background: linear-gradient(135deg, #ea580c, #c2410c); }
+
+  .dash-box { background: #fff; border-radius: 10px; padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+  .dash-box-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 6px; }
+  .dash-box-head h3 { margin: 0; font-size: 14px; color: #1f497d; }
+  .dash-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .dash-filters select, .dash-filters input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: bold; background: #f8fafc; color: #111; }
+  .btn-wa-sum { width: 100%; background: #25D366; color: #fff; border: none; border-radius: 7px; padding: 10px; font-size: 13px; font-weight: bold; cursor: pointer; }
+
+  .party-row { padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
+  .party-row:last-child { border-bottom: none; }
+  .party-top { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; margin-bottom: 4px; }
+  .bar-bg { width: 100%; height: 7px; background: #e2e8f0; border-radius: 99px; overflow: hidden; }
+  .bar-fill { height: 100%; background: #20b2aa; border-radius: 99px; }
+  .party-meta { display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-top: 3px; }
+
+  /* ENTRY FORM STYLES */
   .card { background: #20b2aa; color: #fff; border-radius: 10px; padding: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.12); }
   .card h2 { margin: 0 0 12px; font-size: 15px; text-align: center; letter-spacing: 0.4px; }
   .field { margin-bottom: 10px; }
@@ -85,13 +117,18 @@
 <div class="header">
   <div>
     <h1>HANUMAN TRANSPORT</h1>
-    <small id="syncMeta">OPEN BALE PAVATI ENTRY • MALEGAON</small>
+    <small id="syncMeta">OPEN BALE PAVATI • MALEGAON</small>
   </div>
   <div class="hdr-btns">
     <button class="install-btn" id="hdrInstallBtn" onclick="triggerInstallApp()">📲 INSTALL</button>
     <button class="sync-btn" onclick="pullFromCloud(false)">🔄 SYNC</button>
     <button class="gear-btn" onclick="toggleSettings()">⚙️ URL</button>
   </div>
+</div>
+
+<div class="nav-tabs">
+  <button type="button" class="tab-btn active" id="tabEntryBtn" onclick="switchTab('entry')">📝 PAVATI ENTRY</button>
+  <button type="button" class="tab-btn" id="tabDashBtn" onclick="switchTab('dash')">📊 SMART DASHBOARD</button>
 </div>
 
 <div class="container">
@@ -106,81 +143,143 @@
     <button class="btn-url" onclick="saveApiUrl()">Save URL</button>
   </div>
 
-  <div class="card">
-    <h2>OPEN BALE PAVATI ENTRY</h2>
+  <!-- TAB 1: ENTRY VIEW -->
+  <div id="entryView">
+    <div class="card">
+      <h2>OPEN BALE PAVATI ENTRY</h2>
 
-    <div class="row-2">
-      <div class="field">
-        <label>Date (Calendar 📅)</label>
-        <div class="input-group">
-          <input type="text" id="v_date" readonly class="picker-input" onclick="openCalendarPopup()">
-          <button type="button" class="mini-btn" onclick="openCalendarPopup()">📅</button>
+      <div class="row-2">
+        <div class="field">
+          <label>Date (Calendar 📅)</label>
+          <div class="input-group">
+            <input type="text" id="v_date" readonly class="picker-input" onclick="openCalendarPopup()">
+            <button type="button" class="mini-btn" onclick="openCalendarPopup()">📅</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Pavati No. (Unique Serial)</label>
+          <input type="text" id="p_no" placeholder="1" onkeydown="handleEnter(event, 'bales')">
         </div>
       </div>
-      <div class="field">
-        <label>Pavati No. (Unique Serial)</label>
-        <input type="text" id="p_no" placeholder="1" onkeydown="handleEnter(event, 'bales')">
-      </div>
-    </div>
 
-    <div class="field">
-      <label>Party Name (Tap for List)</label>
-      <div class="input-group">
-        <input type="text" id="party" readonly class="picker-input" placeholder="Tap for Party List" onclick="openSearchPopup('party')">
-        <button type="button" class="mini-btn" onclick="openSearchPopup('party')">🔍</button>
-      </div>
-    </div>
-
-    <div class="row-2">
       <div class="field">
-        <label>Token No (Tap for List)</label>
+        <label>Party Name (Tap for List)</label>
         <div class="input-group">
-          <input type="text" id="token" readonly class="picker-input" placeholder="Tap for Token" onclick="openSearchPopup('token')">
-          <button type="button" class="mini-btn" onclick="openSearchPopup('token')">🔍</button>
+          <input type="text" id="party" readonly class="picker-input" placeholder="Tap for Party List" onclick="openSearchPopup('party')">
+          <button type="button" class="mini-btn" onclick="openSearchPopup('party')">🔍</button>
         </div>
       </div>
-      <div class="field">
-        <label>Quality (Tap for List)</label>
-        <div class="input-group">
-          <input type="text" id="quality" readonly class="picker-input" placeholder="Tap for Quality" onclick="openSearchPopup('quality')">
-          <button type="button" class="mini-btn" onclick="openSearchPopup('quality')">🔍</button>
+
+      <div class="row-2">
+        <div class="field">
+          <label>Token No (Tap for List)</label>
+          <div class="input-group">
+            <input type="text" id="token" readonly class="picker-input" placeholder="Tap for Token" onclick="openSearchPopup('token')">
+            <button type="button" class="mini-btn" onclick="openSearchPopup('token')">🔍</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Quality (Tap for List)</label>
+          <div class="input-group">
+            <input type="text" id="quality" readonly class="picker-input" placeholder="Tap for Quality" onclick="openSearchPopup('quality')">
+            <button type="button" class="mini-btn" onclick="openSearchPopup('quality')">🔍</button>
+          </div>
         </div>
       </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label>Total Bales</label>
+          <input type="number" id="bales" inputmode="numeric" oninput="calcBales()" onkeydown="handleEnter(event, 'start_no')">
+        </div>
+        <div class="field">
+          <label>Start Bale No (Optional)</label>
+          <input type="number" id="start_no" inputmode="numeric" oninput="calcBales()" onkeydown="handleEnter(event, 'bale_no')">
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label>Bale No (Auto / Manual)</label>
+          <input type="text" id="bale_no" class="preview-box" placeholder="Auto or Manual" onkeydown="handleEnter(event, 'than')">
+        </div>
+        <div class="field">
+          <label>Than</label>
+          <input type="text" id="than" placeholder="e.g. 80" onkeydown="handleThanEnter(event)">
+        </div>
+      </div>
+
+      <button class="btn-save" id="saveBtn" onclick="submitEntry()">SAVE PAVATI & SYNC</button>
+      <button class="btn-clear" onclick="clearForm()">CLEAR</button>
+      <div class="status" id="statusMsg"></div>
     </div>
 
-    <div class="row-2">
-      <div class="field">
-        <label>Total Bales</label>
-        <input type="number" id="bales" inputmode="numeric" oninput="calcBales()" onkeydown="handleEnter(event, 'start_no')">
+    <div class="recent">
+      <div class="recent-head">
+        <h3>Pavati List (Manual Photo / Text / Group)</h3>
+        <input type="text" id="dataFilterInp" class="filter-inp" placeholder="Search Party / No..." oninput="renderRecent()">
       </div>
-      <div class="field">
-        <label>Start Bale No (Optional)</label>
-        <input type="number" id="start_no" inputmode="numeric" oninput="calcBales()" onkeydown="handleEnter(event, 'bale_no')">
-      </div>
+      <div id="recentList"><div style="color:#64748b;font-size:12px;">Data load ho raha hai...</div></div>
     </div>
-
-    <div class="row-2">
-      <div class="field">
-        <label>Bale No (Auto / Manual)</label>
-        <input type="text" id="bale_no" class="preview-box" placeholder="Auto or Manual" onkeydown="handleEnter(event, 'than')">
-      </div>
-      <div class="field">
-        <label>Than</label>
-        <input type="text" id="than" placeholder="e.g. 80" onkeydown="handleThanEnter(event)">
-      </div>
-    </div>
-
-    <button class="btn-save" id="saveBtn" onclick="submitEntry()">SAVE PAVATI & SYNC</button>
-    <button class="btn-clear" onclick="clearForm()">CLEAR</button>
-    <div class="status" id="statusMsg"></div>
   </div>
 
-  <div class="recent">
-    <div class="recent-head">
-      <h3>Pavati List (Manual Photo / Text / Group)</h3>
-      <input type="text" id="dataFilterInp" class="filter-inp" placeholder="Search Party / No..." oninput="renderRecent()">
+  <!-- TAB 2: SMART DASHBOARD VIEW -->
+  <div id="dashView" style="display:none;">
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-green">
+        <small>Today Bales</small>
+        <div class="val" id="kpiTodayBales">0</div>
+        <div class="sub" id="kpiTodayCount">0 Pavati</div>
+      </div>
+      <div class="kpi-card kpi-blue">
+        <small>This Month Bales</small>
+        <div class="val" id="kpiMonthBales">0</div>
+        <div class="sub" id="kpiMonthCount">0 Pavati</div>
+      </div>
+      <div class="kpi-card kpi-teal">
+        <small>Total Bales (All)</small>
+        <div class="val" id="kpiTotalBales">0</div>
+        <div class="sub" id="kpiTotalCount">0 Pavati</div>
+      </div>
+      <div class="kpi-card kpi-orange">
+        <small>Active Parties</small>
+        <div class="val" id="kpiParties">0</div>
+        <div class="sub" id="kpiTopParty">Top: -</div>
+      </div>
     </div>
-    <div id="recentList"><div style="color:#64748b;font-size:12px;">Data load ho raha hai...</div></div>
+
+    <div class="dash-box">
+      <div class="dash-box-head">
+        <h3>Filter & Daily WhatsApp Report</h3>
+        <button type="button" class="mini-btn" style="padding:5px 9px;font-size:11px;" onclick="resetDashFilters()">ALL</button>
+      </div>
+      <div class="dash-filters">
+        <select id="dashPartyFilter" onchange="renderDashboard()">
+          <option value="ALL">ALL PARTIES</option>
+        </select>
+        <select id="dashDateFilter" onchange="renderDashboard()">
+          <option value="ALL">ALL DATES</option>
+        </select>
+      </div>
+      <div id="dashFilteredSummary" style="font-size:12px;font-weight:bold;color:#1f497d;margin-bottom:8px;">Filtered: 0 Pavati • 0 Bales</div>
+      <button type="button" class="btn-wa-sum" onclick="sendDashboardWhatsApp()">📤 SEND REPORT ON WHATSAPP</button>
+    </div>
+
+    <div class="dash-box">
+      <div class="dash-box-head">
+        <h3>Party-Wise Bales Summary</h3>
+        <small style="color:#64748b;font-weight:bold;">Highest First</small>
+      </div>
+      <div id="dashPartyList"><div style="color:#64748b;font-size:12px;">Data nahi hai.</div></div>
+    </div>
+
+    <div class="dash-box">
+      <div class="dash-box-head">
+        <h3>Date-Wise Bales Summary</h3>
+        <small style="color:#64748b;font-weight:bold;">Latest First</small>
+      </div>
+      <div id="dashDateList"><div style="color:#64748b;font-size:12px;">Data nahi hai.</div></div>
+    </div>
   </div>
 </div>
 
@@ -255,7 +354,20 @@ let activeSlipItem = null;
 let activeSlipDataUrl = "";
 let activeSlipBlob = null;
 let visibleRecords = [];
+let dashFilteredRows = [];
 let deferredInstallPrompt = null;
+
+function switchTab(tab) {
+  const isDash = tab === "dash";
+  document.getElementById("entryView").style.display = isDash ? "none" : "block";
+  document.getElementById("dashView").style.display = isDash ? "block" : "none";
+  document.getElementById("tabEntryBtn").classList.toggle("active", !isDash);
+  document.getElementById("tabDashBtn").classList.toggle("active", isDash);
+  if (isDash) {
+    populateDashDropdowns();
+    renderDashboard();
+  }
+}
 
 /* --- PWA INSTALL PROMPT & SERVICE WORKER --- */
 window.addEventListener("beforeinstallprompt", (e) => {
@@ -515,6 +627,8 @@ async function pullFromCloud(silent = true) {
       saveStoredRecords(recs.slice().reverse());
       applyNextSerialPno(recs);
       renderRecent();
+      populateDashDropdowns();
+      renderDashboard();
 
       const mCache = getMasterCache();
       document.getElementById("syncMeta").textContent =
@@ -528,6 +642,164 @@ async function pullFromCloud(silent = true) {
   } catch (err) {
     if (!silent) setStatus("Sync error: " + err.message, "#ffcccc");
   }
+}
+
+/* --- SMART DASHBOARD LOGIC --- */
+function populateDashDropdowns() {
+  const all = getStoredRecords();
+  const pSel = document.getElementById("dashPartyFilter");
+  const dSel = document.getElementById("dashDateFilter");
+  const curP = pSel.value || "ALL";
+  const curD = dSel.value || "ALL";
+
+  const parties = Array.from(new Set(all.map(r => String(r.party || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+  const dates = Array.from(new Set(all.map(r => String(r.v_date || "").trim()).filter(Boolean)));
+
+  pSel.innerHTML = `<option value="ALL">ALL PARTIES (${parties.length})</option>` +
+    parties.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join("");
+  if (parties.includes(curP)) pSel.value = curP;
+
+  dSel.innerHTML = `<option value="ALL">ALL DATES (${dates.length})</option>` +
+    dates.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join("");
+  if (dates.includes(curD)) dSel.value = curD;
+}
+
+function resetDashFilters() {
+  document.getElementById("dashPartyFilter").value = "ALL";
+  document.getElementById("dashDateFilter").value = "ALL";
+  renderDashboard();
+}
+
+function renderDashboard() {
+  const all = getStoredRecords();
+  const today = todayStr();
+  const partsToday = today.split("/");
+  const curMonthYear = partsToday.length === 3 ? `/${partsToday[1]}/${partsToday[2]}` : "";
+
+  let todayBales = 0, todayCnt = 0;
+  let monthBales = 0, monthCnt = 0;
+  let totalBales = 0, totalCnt = all.length;
+
+  const partyTotals = {};
+  const dateTotals = {};
+
+  for (const r of all) {
+    if (!r) continue;
+    const b = parseInt(r.bales, 10) || 0;
+    const dt = String(r.v_date || "").trim();
+    const p = String(r.party || "Unknown").trim();
+
+    totalBales += b;
+    if (dt === today) {
+      todayBales += b;
+      todayCnt += 1;
+    }
+    if (curMonthYear && dt.endsWith(curMonthYear)) {
+      monthBales += b;
+      monthCnt += 1;
+    }
+
+    if (!partyTotals[p]) partyTotals[p] = { bales: 0, count: 0, lastDate: dt };
+    partyTotals[p].bales += b;
+    partyTotals[p].count += 1;
+
+    if (dt) {
+      if (!dateTotals[dt]) dateTotals[dt] = { bales: 0, count: 0 };
+      dateTotals[dt].bales += b;
+      dateTotals[dt].count += 1;
+    }
+  }
+
+  const partyEntries = Object.entries(partyTotals).sort((a, b) => b[1].bales - a[1].bales);
+  document.getElementById("kpiTodayBales").textContent = todayBales;
+  document.getElementById("kpiTodayCount").textContent = `${todayCnt} Pavati (${today})`;
+  document.getElementById("kpiMonthBales").textContent = monthBales;
+  document.getElementById("kpiMonthCount").textContent = `${monthCnt} Pavati`;
+  document.getElementById("kpiTotalBales").textContent = totalBales;
+  document.getElementById("kpiTotalCount").textContent = `${totalCnt} Pavati`;
+  document.getElementById("kpiParties").textContent = partyEntries.length;
+  document.getElementById("kpiTopParty").textContent = partyEntries.length
+    ? `Top: ${partyEntries[0][0]} (${partyEntries[0][1].bales})`
+    : "Top: -";
+
+  // Filtered Summary
+  const selP = document.getElementById("dashPartyFilter").value;
+  const selD = document.getElementById("dashDateFilter").value;
+  dashFilteredRows = all.filter(r => {
+    if (!r) return false;
+    if (selP !== "ALL" && String(r.party || "").trim() !== selP) return false;
+    if (selD !== "ALL" && String(r.v_date || "").trim() !== selD) return false;
+    return true;
+  });
+  const fBales = dashFilteredRows.reduce((s, r) => s + (parseInt(r.bales, 10) || 0), 0);
+  document.getElementById("dashFilteredSummary").textContent =
+    `Filtered Result: ${dashFilteredRows.length} Pavati • ${fBales} Total Bales`;
+
+  // Render Party-Wise Progress List
+  const pBox = document.getElementById("dashPartyList");
+  if (!partyEntries.length) {
+    pBox.innerHTML = `<div style="color:#64748b;font-size:12px;">Koi data nahi hai.</div>`;
+  } else {
+    const maxBales = partyEntries[0][1].bales || 1;
+    pBox.innerHTML = partyEntries.map(([name, info]) => {
+      const pct = Math.max(6, Math.round((info.bales / maxBales) * 100));
+      return `
+        <div class="party-row">
+          <div class="party-top">
+            <span>${escapeHtml(name)}</span>
+            <span style="color:#1f497d;">${info.bales} Bales</span>
+          </div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div>
+          <div class="party-meta">
+            <span>${info.count} Pavati</span>
+            <span>Last: ${escapeHtml(info.lastDate || "-")}</span>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // Render Date-Wise List
+  const dBox = document.getElementById("dashDateList");
+  const dateEntries = Object.entries(dateTotals).slice(0, 15);
+  if (!dateEntries.length) {
+    dBox.innerHTML = `<div style="color:#64748b;font-size:12px;">Koi date record nahi hai.</div>`;
+  } else {
+    dBox.innerHTML = dateEntries.map(([dt, info]) => `
+      <div class="item">
+        <div><b>${escapeHtml(dt)}</b><br><small style="color:#64748b;">${info.count} Pavati</small></div>
+        <div style="font-weight:bold;color:#16a34a;font-size:14px;">${info.bales} Bales</div>
+      </div>
+    `).join("");
+  }
+}
+
+function sendDashboardWhatsApp() {
+  if (!dashFilteredRows.length) {
+    alert("Is filter ke liye koi Pavati nahi mili!");
+    return;
+  }
+  const selP = document.getElementById("dashPartyFilter").value;
+  const selD = document.getElementById("dashDateFilter").value;
+  const totalB = dashFilteredRows.reduce((s, r) => s + (parseInt(r.bales, 10) || 0), 0);
+
+  const lines = [
+    "*HANUMAN TRANSPORT - MALEGAON*",
+    `*PARTY:* ${selP}`,
+    `*DATE:* ${selD}`,
+    "--------------------------------"
+  ];
+  for (const r of dashFilteredRows) {
+    const q = r.quality ? ` | Q:${r.quality}` : "";
+    lines.push(`${r.v_date} | #${r.p_no || "-"} | ${r.party} | ${r.bale_no}${q} | *${r.bales} Bales*`);
+  }
+  lines.push("--------------------------------");
+  lines.push(`*TOTAL PAVATI:* ${dashFilteredRows.length}`);
+  lines.push(`*TOTAL BALES:* *${totalB}*`);
+
+  const msg = lines.join("\n");
+  copyTextSafe(msg);
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
 }
 
 /* --- SMART SEARCH POPUP (NO KEYBOARD ON FIELD TAP) --- */
@@ -672,6 +944,8 @@ function prependStoredRecord(item) {
   list.unshift(item);
   saveStoredRecords(list.slice(0, 200));
   renderRecent();
+  populateDashDropdowns();
+  renderDashboard();
 }
 
 function renderRecent() {
@@ -999,6 +1273,8 @@ async function submitEntry() {
     if (checkData && checkData.status === "ok" && Array.isArray(checkData.records)) {
       saveStoredRecords(checkData.records.slice().reverse());
       renderRecent();
+      populateDashDropdowns();
+      renderDashboard();
       if (isDuplicatePno(pnoVal, checkData.records)) {
         applyNextSerialPno(checkData.records);
         setStatus(`Duplicate Pavati No. (${pnoVal})! Cloud me pehle se hai.`, "#ffcccc");
@@ -1032,6 +1308,8 @@ async function submitEntry() {
 document.getElementById("v_date").value = todayStr();
 document.getElementById("apiUrlInput").value = localStorage.getItem(STORAGE_URL_KEY) || "";
 renderRecent();
+populateDashDropdowns();
+renderDashboard();
 applyNextSerialPno();
 pullFromCloud(true);
 </script>
