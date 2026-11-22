@@ -49,6 +49,10 @@
   .dash-box { background: #fff; border-radius: 10px; padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
   .dash-box-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 6px; }
   .dash-box-head h3 { margin: 0; font-size: 14px; color: #1f497d; }
+  .do-report-banner { background: #f0f9ff; border: 1.5px solid #0284c7; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+  .do-report-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .do-report-top h3 { margin: 0; font-size: 14px; color: #0369a1; }
+  .do-stats-line { font-size: 12px; font-weight: bold; color: #0f172a; margin-bottom: 8px; }
   .dash-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
   .dash-filters select, .dash-filters input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: bold; background: #f8fafc; color: #111; }
   .dash-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -86,8 +90,8 @@
   .item { border-bottom: 1px solid #e2e8f0; padding: 9px 2px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .item:last-child { border-bottom: none; }
   .grp-tag { display: inline-block; background: #e6fffa; color: #0f766e; border: 1px solid #99f6e4; border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: bold; margin-top: 2px; margin-right: 4px; }
-  .st-ok { display: inline-block; background: #dcfce7; color: #166534; border: 1px solid #86efac; border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: bold; margin-top: 2px; }
-  .st-pend { display: inline-block; background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: bold; margin-top: 2px; }
+  .st-toggle-ok { background: #dcfce7; color: #166534; border: 1px solid #86efac; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: bold; margin-top: 3px; cursor: pointer; }
+  .st-toggle-pend { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: bold; margin-top: 3px; cursor: pointer; }
   .item-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; flex-shrink: 0; width: 148px; }
   .btn-grp-send { grid-column: 1 / -1; background: #0f766e; color: #fff; border: none; border-radius: 5px; padding: 6px 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
   .btn-slip { background: #128C7E; color: #fff; border: none; border-radius: 5px; padding: 6px 6px; font-size: 10px; font-weight: bold; cursor: pointer; }
@@ -213,7 +217,7 @@
       <div class="row-2">
         <div class="field">
           <label>Bale No (Auto / Manual)</label>
-          <input type="text" id="bale_no" class="preview-box" placeholder="Auto or Manual" onkeydown="handleEnter(event, 'than')">
+          <input type="text" id="bale_no" class="preview-box" placeholder="e.g. 1,2,3,4,5" onkeydown="handleEnter(event, 'than')">
         </div>
         <div class="field">
           <label id="thanOrTempoLabel">Than</label>
@@ -248,7 +252,7 @@
 
     <div class="recent">
       <div class="recent-head">
-        <h3>Entries List (Manual Photo / Text / Group)</h3>
+        <h3>Entries List (Tap OK/Pending to Change)</h3>
         <input type="text" id="dataFilterInp" class="filter-inp" placeholder="Search Party / DO / No..." oninput="renderRecent()">
       </div>
       <div id="recentList"><div style="color:#64748b;font-size:12px;">Data load ho raha hai...</div></div>
@@ -280,9 +284,22 @@
       </div>
     </div>
 
+    <!-- DEDICATED DO REPORT SECTION INSIDE SMART DASHBOARD -->
+    <div class="do-report-banner">
+      <div class="do-report-top">
+        <h3>📋 DO REPORT</h3>
+        <button type="button" class="mini-btn" style="background:#0284c7;padding:5px 9px;font-size:11px;" onclick="applyDoReportFocus()">DO ONLY</button>
+      </div>
+      <div class="do-stats-line" id="doReportStats">DO Entries: 0 • Total Bales: 0 • OK: 0 • PENDING: 0</div>
+      <div class="dash-btn-row">
+        <button type="button" class="btn-rep-photo" style="background:#0369a1;" onclick="openDoReportPhoto()">🖼️ DO REPORT PHOTO</button>
+        <button type="button" class="btn-wa-sum" onclick="sendDoReportWhatsApp()">💬 DO WA REPORT</button>
+      </div>
+    </div>
+
     <div class="dash-box">
       <div class="dash-box-head">
-        <h3>Register Report Photo & WA Summary</h3>
+        <h3>Register Report Photo & Filter</h3>
         <button type="button" class="mini-btn" style="padding:5px 9px;font-size:11px;" onclick="resetDashFilters()">ALL</button>
       </div>
       <div class="dash-filters">
@@ -392,7 +409,7 @@
 <div class="modal-backdrop" id="reportPhotoModal" onclick="backdropClose(event, 'reportPhotoModal')">
   <div class="modal-card">
     <div class="modal-head">
-      <h3>Register Ledger Report Photo</h3>
+      <h3 id="reportPhotoTitle">Register Ledger Report Photo</h3>
       <button class="close-x" onclick="closeModal('reportPhotoModal')">✕</button>
     </div>
     <div class="slip-img-wrap" style="max-height:420px;">
@@ -425,6 +442,7 @@ let activeSlipDataUrl = "";
 let activeSlipBlob = null;
 let activeReportDataUrl = "";
 let activeReportBlob = null;
+let activeReportLabel = "Report";
 let visibleRecords = [];
 let dashFilteredRows = [];
 let deferredInstallPrompt = null;
@@ -517,13 +535,18 @@ function setStatus(msg, color = "#fff3cd") {
   el.textContent = msg;
 }
 
+/* --- BALE NO FORMAT: 1,2,3,4,5 --- */
 function calcBales() {
   const qty = parseInt(document.getElementById("bales").value, 10);
   const startRaw = document.getElementById("start_no").value.trim();
   const start = parseInt(startRaw, 10);
   const out = document.getElementById("bale_no");
   if (!isNaN(qty) && qty > 0 && startRaw !== "" && !isNaN(start)) {
-    out.value = qty === 1 ? `${start}` : `${start} to ${start + qty - 1}`;
+    const nums = [];
+    for (let i = 0; i < qty; i++) {
+      nums.push(String(start + i));
+    }
+    out.value = nums.join(",");
   }
 }
 
@@ -764,7 +787,46 @@ async function pullFromCloud(silent = true) {
   }
 }
 
-/* --- SMART DASHBOARD LOGIC --- */
+/* --- TOGGLE REPORT STATUS (OK / PENDING) AFTER SAVE --- */
+async function toggleRecordReportStatus(idx) {
+  const target = visibleRecords[idx];
+  if (!target) return;
+  const curSt = String(target.report_status || "PENDING").toUpperCase();
+  const nextSt = curSt === "OK" ? "PENDING" : "OK";
+
+  const all = getStoredRecords();
+  for (const r of all) {
+    if (!r) continue;
+    const sameId = target.sync_id && r.sync_id && r.sync_id === target.sync_id;
+    const sameDoc = !target.sync_id &&
+      String(r.entry_type || "PAVATI").toUpperCase() === String(target.entry_type || "PAVATI").toUpperCase() &&
+      String(r.p_no || "") === String(target.p_no || "") &&
+      String(r.party || "") === String(target.party || "");
+    if (sameId || sameDoc) {
+      r.report_status = nextSt;
+    }
+  }
+  saveStoredRecords(all);
+  renderRecent();
+  renderDashboard();
+
+  const apiUrl = (localStorage.getItem(STORAGE_URL_KEY) || "").trim();
+  if (apiUrl && target.sync_id) {
+    try {
+      await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "update_status",
+          sync_id: target.sync_id,
+          report_status: nextSt
+        })
+      });
+    } catch (e) {}
+  }
+}
+
+/* --- SMART DASHBOARD & DO REPORT LOGIC --- */
 function populateDashDropdowns() {
   const all = getStoredRecords();
   const pSel = document.getElementById("dashPartyFilter");
@@ -792,6 +854,15 @@ function resetDashFilters() {
   renderDashboard();
 }
 
+function applyDoReportFocus() {
+  document.getElementById("dashTypeFilter").value = "DO";
+  renderDashboard();
+}
+
+function getAllDoRows() {
+  return getStoredRecords().filter(r => r && String(r.entry_type || "").toUpperCase() === "DO");
+}
+
 function renderDashboard() {
   const all = getStoredRecords();
   const today = todayStr();
@@ -803,6 +874,9 @@ function renderDashboard() {
   let totalBales = 0, totalCnt = all.length;
   let okCnt = 0, pendCnt = 0;
 
+  let doBales = 0, doOk = 0, doPend = 0;
+  const doRows = [];
+
   const partyTotals = {};
   const dateTotals = {};
 
@@ -811,10 +885,20 @@ function renderDashboard() {
     const b = parseInt(r.bales, 10) || 0;
     const dt = String(r.v_date || "").trim();
     const p = String(r.party || "Unknown").trim();
-    const st = String(r.report_status || "").toUpperCase();
+    const rType = String(r.entry_type || "PAVATI").toUpperCase();
+    const st = String(r.report_status || "PENDING").toUpperCase();
 
-    if (st === "OK") okCnt += 1;
-    if (st === "PENDING") pendCnt += 1;
+    if (rType === "DO") {
+      doRows.push(r);
+      doBales += b;
+      if (st === "OK") {
+        okCnt += 1;
+        doOk += 1;
+      } else {
+        pendCnt += 1;
+        doPend += 1;
+      }
+    }
 
     totalBales += b;
     if (dt === today) {
@@ -837,6 +921,9 @@ function renderDashboard() {
     }
   }
 
+  document.getElementById("doReportStats").textContent =
+    `DO Entries: ${doRows.length} • Total Bales: ${doBales} • OK: ${doOk} • PENDING: ${doPend}`;
+
   const partyEntries = Object.entries(partyTotals).sort((a, b) => b[1].bales - a[1].bales);
   document.getElementById("kpiTodayBales").textContent = todayBales;
   document.getElementById("kpiTodayCount").textContent = `${todayCnt} Entries (${today})`;
@@ -858,7 +945,7 @@ function renderDashboard() {
   dashFilteredRows = all.filter(r => {
     if (!r) return false;
     const rType = String(r.entry_type || "PAVATI").toUpperCase();
-    const rSt = String(r.report_status || "").toUpperCase();
+    const rSt = String(r.report_status || "PENDING").toUpperCase();
     if (selType !== "ALL" && rType !== selType) return false;
     if (selSt !== "ALL" && rSt !== selSt) return false;
     if (selP !== "ALL" && String(r.party || "").trim() !== selP) return false;
@@ -921,7 +1008,7 @@ function getMonthLabelFromRows(rows) {
   return `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
 }
 
-function buildRegisterReportCanvas(rows) {
+function buildRegisterReportCanvas(rows, forcedPartyLabel = "") {
   const orderedRows = rows.slice().reverse();
   const minRows = 16;
   const totalSlots = Math.max(minRows, orderedRows.length);
@@ -971,7 +1058,7 @@ function buildRegisterReportCanvas(rows) {
   ctx.stroke();
 
   const selP = document.getElementById("dashPartyFilter").value;
-  const partyVal = selP === "ALL" ? "ALL PARTIES" : selP;
+  const partyVal = forcedPartyLabel || (selP === "ALL" ? "ALL PARTIES" : selP);
   const monthVal = getMonthLabelFromRows(orderedRows);
   const cache = getMasterCache();
   const mobileVal = (selP !== "ALL" && cache.phones && cache.phones[selP]) ? cache.phones[selP] : "";
@@ -1068,9 +1155,9 @@ function buildRegisterReportCanvas(rows) {
       ctx.fillText(String(r.token || ""), (c1 + c2) / 2, yText);
 
       ctx.textAlign = "left";
-      let detailText = selP === "ALL" ? `${r.party || ""} • ${r.bale_no || ""}` : String(r.bale_no || "");
+      let detailText = partyVal === "ALL PARTIES" ? `${r.party || ""} • ${r.bale_no || ""}` : String(r.bale_no || "");
       if (isDo) {
-        const extra = [r.press_name, r.than, r.report_status].filter(Boolean).join(" | ");
+        const extra = [r.press_name, r.than, r.report_status || "PENDING"].filter(Boolean).join(" | ");
         if (extra) detailText += ` (${extra})`;
       }
       ctx.fillText(detailText.slice(0, 38), c2 + 10, yText);
@@ -1120,22 +1207,38 @@ function buildRegisterReportCanvas(rows) {
   return canvas;
 }
 
-function openRegisterReportModal() {
-  if (!dashFilteredRows.length) {
-    alert("Report photo banane ke liye pehle koi data hona zaroori hai!");
-    return;
-  }
-  const canvas = buildRegisterReportCanvas(dashFilteredRows);
+function showReportCanvasInModal(canvas, modalTitle, fileLabel) {
+  activeReportLabel = fileLabel;
   activeReportDataUrl = canvas.toDataURL("image/png");
+  document.getElementById("reportPhotoTitle").textContent = modalTitle;
   document.getElementById("reportPreviewImg").src = activeReportDataUrl;
   canvas.toBlob(blob => { activeReportBlob = blob; }, "image/png");
   document.getElementById("reportPhotoModal").style.display = "flex";
 }
 
-async function shareRegisterReportPhoto() {
+function openDoReportPhoto() {
+  const doRows = getAllDoRows();
+  if (!doRows.length) {
+    alert("Abhi koi D.O. Entry save nahi hui hai!");
+    return;
+  }
+  const canvas = buildRegisterReportCanvas(doRows, "DO REPORT (ALL D.O.)");
+  showReportCanvasInModal(canvas, "DO REPORT PHOTO", "DO_Report");
+}
+
+function openRegisterReportModal() {
+  if (!dashFilteredRows.length) {
+    alert("Report photo banane ke liye pehle koi data hona zaroori hai!");
+    return;
+  }
   const selP = document.getElementById("dashPartyFilter").value;
-  const safeName = selP.replace(/[^a-zA-Z0-9_-]/g, "_");
-  const fileName = `Hanuman_Report_${safeName}.png`;
+  const canvas = buildRegisterReportCanvas(dashFilteredRows);
+  showReportCanvasInModal(canvas, "Register Ledger Report Photo", `Hanuman_Report_${selP}`);
+}
+
+async function shareRegisterReportPhoto() {
+  const safeName = String(activeReportLabel || "Report").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const fileName = `${safeName}.png`;
 
   if (navigator.share && activeReportBlob) {
     try {
@@ -1143,7 +1246,7 @@ async function shareRegisterReportPhoto() {
       if (!navigator.canShare || navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: `Hanuman Transport Report - ${selP}`
+          title: `Hanuman Transport ${safeName}`
         });
         return;
       }
@@ -1153,12 +1256,38 @@ async function shareRegisterReportPhoto() {
 }
 
 function downloadRegisterReportPhoto() {
-  const selP = document.getElementById("dashPartyFilter").value;
-  const safeName = selP.replace(/[^a-zA-Z0-9_-]/g, "_");
+  const safeName = String(activeReportLabel || "Report").replace(/[^a-zA-Z0-9_-]/g, "_");
   const a = document.createElement("a");
   a.href = activeReportDataUrl;
-  a.download = `Hanuman_Report_${safeName}.png`;
+  a.download = `${safeName}.png`;
   a.click();
+}
+
+function sendDoReportWhatsApp() {
+  const doRows = getAllDoRows();
+  if (!doRows.length) {
+    alert("Abhi koi D.O. Entry save nahi hui hai!");
+    return;
+  }
+  const totalB = doRows.reduce((s, r) => s + (parseInt(r.bales, 10) || 0), 0);
+  const okC = doRows.filter(r => String(r.report_status || "").toUpperCase() === "OK").length;
+  const pendC = doRows.length - okC;
+
+  const lines = [
+    "*HANUMAN TRANSPORT - DO REPORT*",
+    "--------------------------------"
+  ];
+  for (const r of doRows) {
+    const st = String(r.report_status || "PENDING").toUpperCase();
+    lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | Bales:${r.bale_no} | Tempo:${r.than || "-"} | Press:${r.press_name || "-"} | *${st}* | *${r.bales} Bales*`);
+  }
+  lines.push("--------------------------------");
+  lines.push(`*TOTAL DO:* ${doRows.length} | *OK:* ${okC} | *PENDING:* ${pendC}`);
+  lines.push(`*TOTAL BALES:* *${totalB}*`);
+
+  const msg = lines.join("\n");
+  copyTextSafe(msg);
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
 }
 
 function sendDashboardWhatsApp() {
@@ -1380,9 +1509,9 @@ function renderRecent() {
       ? `<br><small style="color:#334155;">${r.press_name ? "Press: " + escapeHtml(r.press_name) : ""}${r.than ? " • Tempo: " + escapeHtml(r.than) : ""}</small>`
       : "";
 
-    const stVal = String(r.report_status || "").toUpperCase();
-    const stBadge = isDo && stVal
-      ? `<span class="${stVal === "OK" ? "st-ok" : "st-pend"}">Report: ${escapeHtml(stVal)}</span>`
+    const stVal = String(r.report_status || "PENDING").toUpperCase();
+    const stBtn = isDo
+      ? `<button type="button" class="${stVal === "OK" ? "st-toggle-ok" : "st-toggle-pend"}" onclick="toggleRecordReportStatus(${idx})">Report: ${escapeHtml(stVal)} (Tap)</button>`
       : "";
 
     return `
@@ -1391,7 +1520,7 @@ function renderRecent() {
           <b>${noPrefix}${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})<br>
           <small style="color:#64748b;">${escapeHtml(r.v_date)} • ${escapeHtml(String(r.bales))} Bales${r.quality ? " • " + escapeHtml(r.quality) : ""}</small>
           ${doInfo}<br>
-          ${grpBadge}${stBadge}
+          ${grpBadge}${stBtn}
         </div>
         <div class="item-actions">
           <button type="button" class="btn-grp-send" onclick="openSlipModal(${idx})">Group / Slip</button>
