@@ -87,10 +87,13 @@
   .settings-box { display: none; background: #fff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
   .settings-box input { width: 100%; padding: 8px; border: 1px solid #94a3b8; border-radius: 6px; font-size: 13px; margin: 6px 0 10px; }
   .btn-url { background: #1f497d; color: #fff; border: none; border-radius: 6px; padding: 8px 14px; font-weight: bold; cursor: pointer; }
+
   .recent { background: #fff; border-radius: 10px; padding: 12px; margin-top: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
   .recent-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 6px; }
   .recent-head h3 { margin: 0; font-size: 14px; color: #1f497d; }
   .filter-inp { padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; width: 145px; }
+  .recent-sub-title { font-size: 12px; font-weight: bold; color: #16365c; background: #f1f5f9; padding: 6px 8px; border-radius: 6px; margin: 10px 0 6px; }
+  .recent-sub-title.do-sub { color: #0369a1; background: #e0f2fe; }
   .item { border-bottom: 1px solid #e2e8f0; padding: 9px 2px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .item:last-child { border-bottom: none; }
   .grp-tag { display: inline-block; background: #e6fffa; color: #0f766e; border: 1px solid #99f6e4; border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: bold; margin-top: 2px; margin-right: 4px; }
@@ -250,7 +253,7 @@
 
     <div class="recent">
       <div class="recent-head">
-        <h3>Recent Entries (Open Slip Only)</h3>
+        <h3>Recent Entries (Separate Open & D.O.)</h3>
         <input type="text" id="dataFilterInp" class="filter-inp" placeholder="Search Party / DO / No..." oninput="renderRecent()">
       </div>
       <div id="recentList"><div style="color:#64748b;font-size:12px;">Data load ho raha hai...</div></div>
@@ -507,7 +510,8 @@ let activeDoEditItem = null;
 let activeReportDataUrl = "";
 let activeReportBlob = null;
 let activeReportLabel = "Report";
-let visibleRecords = [];
+let recentOpenList = [];
+let recentDoList = [];
 let visibleDoRecords = [];
 let dashFilteredRows = [];
 let deferredInstallPrompt = null;
@@ -529,6 +533,13 @@ function getDoSplit(r) {
   return { total, ok, pending, status };
 }
 
+function formatDoPhotoStatusLabel(sp) {
+  if (!sp || sp.total <= 0) return "PENDING";
+  if (sp.ok >= sp.total) return "OK";
+  if (sp.ok <= 0) return "PENDING";
+  return `${sp.ok} OK / ${sp.pending} P`;
+}
+
 function setEntryMode(mode) {
   entryMode = mode === "DO" ? "DO" : "PAVATI";
   const isDo = entryMode === "DO";
@@ -543,6 +554,7 @@ function setEntryMode(mode) {
   document.getElementById("saveBtn").textContent = isDo ? "SAVE D.O. & SYNC" : "SAVE PAVATI & SYNC";
 
   applyNextSerialPno();
+  renderRecent();
 }
 
 function switchTab(tab) {
@@ -887,8 +899,7 @@ async function pullFromCloud(silent = true) {
   }
 }
 
-/* --- PARTIAL / OK / PENDING BALES MODAL FOR DO --- */
-function openDoStatusModal(idx) {
+async function openDoStatusModal(idx) {
   const r = visibleDoRecords[idx];
   if (!r) return;
   activeDoEditItem = r;
@@ -957,6 +968,7 @@ async function saveDoSplitStatus() {
   }
   saveStoredRecords(all);
   closeModal("doStatusModal");
+  renderRecent();
   renderDashboard();
   populateDoPressDropdown();
   renderDoReportTab();
@@ -979,7 +991,6 @@ async function saveDoSplitStatus() {
   }
 }
 
-/* --- DO REPORT LOGIC --- */
 function getAllDoRows() {
   return getStoredRecords().filter(r => isDoRecord(r));
 }
@@ -1364,7 +1375,7 @@ function buildRegisterReportCanvas(rows, options = {}) {
 
   if (isDoReport) {
     ctx.fillText("Press Name", (c4 + c4b) / 2, headerBottomY + 31);
-    ctx.fillText("OK / Pending", (c4b + c5) / 2, headerBottomY + 31);
+    ctx.fillText("Report Status", (c4b + c5) / 2, headerBottomY + 31);
   } else {
     ctx.fillText("Pavati No.", (c4 + c5) / 2, headerBottomY + 31);
   }
@@ -1422,9 +1433,12 @@ function buildRegisterReportCanvas(rows, options = {}) {
         ctx.fillStyle = "#111827";
         ctx.fillText(String(r.press_name || "-").slice(0, 15), (c4 + c4b) / 2, yText);
 
+        const stLabel = formatDoPhotoStatusLabel(sp);
         ctx.font = "bold 15px Arial";
-        ctx.fillStyle = sp.pending === 0 ? "#15803d" : "#b45309";
-        ctx.fillText(`${sp.ok} OK / ${sp.pending} P`, (c4b + c5) / 2, yText);
+        if (stLabel === "OK") ctx.fillStyle = "#15803d";
+        else if (stLabel === "PENDING") ctx.fillStyle = "#b45309";
+        else ctx.fillStyle = "#0369a1";
+        ctx.fillText(stLabel, (c4b + c5) / 2, yText);
       } else {
         ctx.fillStyle = "#b91c1c";
         ctx.fillText(`#${String(r.p_no || "")}`, (c4 + c5) / 2, yText);
@@ -1464,9 +1478,17 @@ function buildRegisterReportCanvas(rows, options = {}) {
   ctx.fillText(String(sumQty), (c3 + c4) / 2, totalRowTop + 32);
 
   if (isDoReport) {
-    ctx.font = "bold 16px Arial";
-    ctx.fillStyle = "#15803d";
-    ctx.fillText(`OK:${sumOk} / P:${sumPend}`, (c4b + c5) / 2, totalRowTop + 31);
+    ctx.font = "bold 15px Arial";
+    if (sumPend === 0 && sumQty > 0) {
+      ctx.fillStyle = "#15803d";
+      ctx.fillText("OK", (c4b + c5) / 2, totalRowTop + 31);
+    } else if (sumOk === 0) {
+      ctx.fillStyle = "#b45309";
+      ctx.fillText("PENDING", (c4b + c5) / 2, totalRowTop + 31);
+    } else {
+      ctx.fillStyle = "#0369a1";
+      ctx.fillText(`${sumOk} OK / ${sumPend} P`, (c4b + c5) / 2, totalRowTop + 31);
+    }
   }
 
   ctx.textAlign = "left";
@@ -1548,7 +1570,7 @@ function sendDoReportWhatsApp() {
     totalB += sp.total;
     okB += sp.ok;
     pendB += sp.pending;
-    lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | Bales:${r.bale_no} | Press:${r.press_name || "-"} | Total:${sp.total} | *OK:${sp.ok} / Pending:${sp.pending}*`);
+    lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | Bales:${r.bale_no} | Press:${r.press_name || "-"} | Total:${sp.total} | *${formatDoPhotoStatusLabel(sp)}*`);
   }
   lines.push("--------------------------------");
   lines.push(`*TOTAL BALES:* *${totalB}* | *OK:* *${okB}* | *PENDING:* *${pendB}*`);
@@ -1576,7 +1598,7 @@ function sendDashboardWhatsApp() {
   for (const r of dashFilteredRows) {
     if (isDoRecord(r)) {
       const sp = getDoSplit(r);
-      lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | ${r.bale_no} | Press:${r.press_name || "-"} | *OK:${sp.ok} / Pending:${sp.pending}* | *${sp.total} Bales*`);
+      lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | ${r.bale_no} | Press:${r.press_name || "-"} | *${formatDoPhotoStatusLabel(sp)}* | *${sp.total} Bales*`);
     } else {
       const q = r.quality ? ` | Q:${r.quality}` : "";
       lines.push(`${r.v_date} | #${r.p_no || "-"} | ${r.party} | ${r.bale_no}${q} | *${r.bales} Bales*`);
@@ -1751,58 +1773,80 @@ function prependStoredRecord(item) {
   renderDoReportTab();
 }
 
+/* --- SEPARATE OPEN PAVATI & D.O. IN RECENT ENTRIES (NO MIXING) --- */
 function renderRecent() {
   const all = getStoredRecords();
   const grpMap = getPartyGroupMap();
   const q = (document.getElementById("dataFilterInp").value || "").trim().toLowerCase();
-  visibleRecords = q
-    ? all.filter(r => `${r.v_date} ${r.party} ${r.p_no} ${r.token} ${r.quality} ${r.bale_no} ${r.press_name || ""} ${r.report_status || ""} ${r.entry_type || ""}`.toLowerCase().includes(q))
-    : all.slice(0, 25);
+
+  const matchesFilter = (r) => {
+    if (!q) return true;
+    return `${r.v_date} ${r.party} ${r.p_no} ${r.token} ${r.quality} ${r.bale_no} ${r.press_name || ""} ${r.report_status || ""} ${r.entry_type || ""}`
+      .toLowerCase()
+      .includes(q);
+  };
+
+  recentOpenList = all.filter(r => !isDoRecord(r) && matchesFilter(r)).slice(0, 15);
+  recentDoList = all.filter(r => isDoRecord(r) && matchesFilter(r)).slice(0, 15);
 
   const box = document.getElementById("recentList");
-  if (!visibleRecords.length) {
+  if (!recentOpenList.length && !recentDoList.length) {
     box.innerHTML = `<div style="color:#64748b;font-size:12px;">Koi entry nahi mili. 🔄 SYNC dabayein.</div>`;
     return;
   }
 
-  box.innerHTML = visibleRecords.map((r, idx) => {
-    const isDo = isDoRecord(r);
-    if (isDo) {
+  let html = "";
+
+  // Section 1: Open Bale Pavati Only
+  html += `<div class="recent-sub-title">OPEN BALE PAVATI (${recentOpenList.length})</div>`;
+  if (!recentOpenList.length) {
+    html += `<div style="color:#64748b;font-size:12px;padding:4px 2px;">Koi Open Pavati entry nahi hai.</div>`;
+  } else {
+    html += recentOpenList.map((r, idx) => {
+      const grp = grpMap[r.party] || "";
+      const grpBadge = grp
+        ? `<span class="grp-tag">WA Group: ${escapeHtml(grp)}</span>`
+        : `<span class="grp-tag" style="background:#f8fafc;color:#64748b;border-color:#cbd5e1;">Group: "Group / Slip"</span>`;
+      return `
+        <div class="item">
+          <div>
+            <b>#${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})<br>
+            <small style="color:#64748b;">${escapeHtml(r.v_date)} • ${escapeHtml(String(r.bales))} Bales${r.quality ? " • " + escapeHtml(r.quality) : ""}</small><br>
+            ${grpBadge}
+          </div>
+          <div class="item-actions">
+            <button type="button" class="btn-grp-send" onclick="openSlipModal(${idx})">Group / Slip</button>
+            <button type="button" class="btn-slip" onclick="manualPhotoOnly(${idx})">WA Slip</button>
+            <button type="button" class="btn-wa" onclick="manualTextOnly(${idx})">WA Text</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // Section 2: D.O. Entry Only (Separate from Open Pavati, No Slip)
+  html += `<div class="recent-sub-title do-sub">D.O. ENTRY (${recentDoList.length})</div>`;
+  if (!recentDoList.length) {
+    html += `<div style="color:#64748b;font-size:12px;padding:4px 2px;">Koi D.O. entry nahi hai.</div>`;
+  } else {
+    html += recentDoList.map((r) => {
       const sp = getDoSplit(r);
       return `
         <div class="item">
           <div>
             <b>DO-${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})<br>
-            <small style="color:#64748b;">${escapeHtml(r.v_date)} • Total: ${sp.total} • OK: ${sp.ok} • Pending: ${sp.pending}</small><br>
-            <span class="do-tag">D.O. ENTRY (Slip Only Open Pavati)</span>
+            <small style="color:#64748b;">${escapeHtml(r.v_date)} • Total: <b>${sp.total}</b> • OK: <b style="color:#15803d;">${sp.ok}</b> • Pending: <b style="color:#b45309;">${sp.pending}</b></small><br>
+            <span class="do-tag">Press: ${escapeHtml(r.press_name || "-")}${r.than ? " • Tempo: " + escapeHtml(r.than) : ""}</span>
           </div>
           <div style="text-align:right;flex-shrink:0;">
-            <span style="font-size:11px;font-weight:bold;color:#0369a1;">${escapeHtml(sp.status)}</span>
+            <span style="font-size:11px;font-weight:bold;color:#0369a1;">${escapeHtml(formatDoPhotoStatusLabel(sp))}</span>
           </div>
         </div>
       `;
-    }
+    }).join("");
+  }
 
-    const grp = grpMap[r.party] || "";
-    const grpBadge = grp
-      ? `<span class="grp-tag">WA Group: ${escapeHtml(grp)}</span>`
-      : `<span class="grp-tag" style="background:#f8fafc;color:#64748b;border-color:#cbd5e1;">Group: "Group / Slip"</span>`;
-
-    return `
-      <div class="item">
-        <div>
-          <b>#${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})<br>
-          <small style="color:#64748b;">${escapeHtml(r.v_date)} • ${escapeHtml(String(r.bales))} Bales${r.quality ? " • " + escapeHtml(r.quality) : ""}</small><br>
-          ${grpBadge}
-        </div>
-        <div class="item-actions">
-          <button type="button" class="btn-grp-send" onclick="openSlipModal(${idx})">Group / Slip</button>
-          <button type="button" class="btn-slip" onclick="manualPhotoOnly(${idx})">WA Slip</button>
-          <button type="button" class="btn-wa" onclick="manualTextOnly(${idx})">WA Text</button>
-        </div>
-      </div>
-    `;
-  }).join("");
+  box.innerHTML = html;
 }
 
 function buildSlipCanvas(r) {
@@ -1888,8 +1932,8 @@ function buildSlipCanvas(r) {
 }
 
 function openSlipModal(idx) {
-  const r = visibleRecords[idx];
-  if (!r || isDoRecord(r)) return;
+  const r = recentOpenList[idx];
+  if (!r) return;
   activeSlipItem = r;
 
   const canvas = buildSlipCanvas(r);
@@ -1927,8 +1971,8 @@ function copyTextSafe(txt) {
 }
 
 async function manualPhotoOnly(idx) {
-  const r = visibleRecords[idx];
-  if (!r || isDoRecord(r)) return;
+  const r = recentOpenList[idx];
+  if (!r) return;
   const grpMap = getPartyGroupMap();
   const grpName = grpMap[r.party] || "";
   const canvas = buildSlipCanvas(r);
@@ -1962,8 +2006,8 @@ async function manualPhotoOnly(idx) {
 }
 
 function manualTextOnly(idx) {
-  const r = visibleRecords[idx];
-  if (!r || isDoRecord(r)) return;
+  const r = recentOpenList[idx];
+  if (!r) return;
   const grpMap = getPartyGroupMap();
   const grpName = grpMap[r.party] || "";
   const txt = formatSlipText(r);
