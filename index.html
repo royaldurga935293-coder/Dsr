@@ -825,6 +825,64 @@ function saveStoredRecords(recs) {
   localStorage.setItem(STORAGE_DATA_KEY, JSON.stringify(list));
 }
 
+function recordKey(r) {
+  if (!r) return "";
+  if (r.sync_id) return String(r.sync_id).trim();
+  const tp = String(r.entry_type || "PAVATI").toUpperCase();
+  return `${tp}|${String(r.p_no || "").trim()}|${String(r.v_date || "").trim()}|${String(r.party || "").trim()}|${String(r.bale_no || "").trim()}`;
+}
+
+/* --- SAFE MERGE ON REFRESH / SYNC SO LOCAL DATA & STATUS NEVER VANISH --- */
+function mergeCloudWithLocal(cloudRecords) {
+  const localRecs = getStoredRecords();
+  const cloudArr = Array.isArray(cloudRecords) ? cloudRecords.slice().reverse() : [];
+  if (!cloudArr.length && localRecs.length) {
+    return localRecs;
+  }
+
+  const localByKey = new Map();
+  for (const lr of localRecs) {
+    const k = recordKey(lr);
+    if (k) localByKey.set(k, lr);
+  }
+
+  const merged = [];
+  const seenKeys = new Set();
+
+  for (const cr of cloudArr) {
+    if (!cr || (!String(cr.party || "").trim() && !String(cr.p_no || "").trim())) continue;
+    const k = recordKey(cr);
+    const prev = k ? localByKey.get(k) : null;
+    const item = Object.assign({}, prev || {}, cr);
+
+    // Preserve DO extended fields & partial/OK/Pending bales if cloud sheet has older columns
+    if (!item.entry_type && prev && prev.entry_type) item.entry_type = prev.entry_type;
+    if (!item.press_name && prev && prev.press_name) item.press_name = prev.press_name;
+    if ((item.ok_bales === undefined || item.ok_bales === null || item.ok_bales === "") && prev && prev.ok_bales !== undefined) {
+      item.ok_bales = prev.ok_bales;
+    }
+    if ((item.pending_bales === undefined || item.pending_bales === null || item.pending_bales === "") && prev && prev.pending_bales !== undefined) {
+      item.pending_bales = prev.pending_bales;
+    }
+    if (!item.report_status && prev && prev.report_status) {
+      item.report_status = prev.report_status;
+    }
+
+    if (k) seenKeys.add(k);
+    merged.push(item);
+  }
+
+  // Keep any local entries not yet returned by cloud
+  for (const lr of localRecs) {
+    const k = recordKey(lr);
+    if (!k || !seenKeys.has(k)) {
+      merged.push(lr);
+    }
+  }
+
+  return merged.slice(0, 300);
+}
+
 function isDuplicatePno(pnoVal, recordsArr) {
   const target = String(pnoVal || "").trim().toLowerCase();
   if (!target) return false;
@@ -882,9 +940,9 @@ async function pullFromCloud(silent = true) {
 
     if (data && data.status === "ok") {
       if (data.master) mergeMasterToCache(data.master);
-      const recs = Array.isArray(data.records) ? data.records : [];
-      saveStoredRecords(recs.slice().reverse());
-      applyNextSerialPno(recs);
+      const mergedRecs = mergeCloudWithLocal(Array.isArray(data.records) ? data.records : []);
+      saveStoredRecords(mergedRecs);
+      applyNextSerialPno(mergedRecs);
       renderRecent();
       populateDashDropdowns();
       renderDashboard();
@@ -893,9 +951,9 @@ async function pullFromCloud(silent = true) {
 
       const mCache = getMasterCache();
       document.getElementById("syncMeta").textContent =
-        `P:${mCache.parties.length} • T:${mCache.tokens.length} • Q:${mCache.qualities.length} • ${recs.length} Rows`;
+        `P:${mCache.parties.length} • T:${mCache.tokens.length} • Q:${mCache.qualities.length} • ${mergedRecs.length} Rows`;
       if (!silent) {
-        setStatus(`Synced! Party:${mCache.parties.length}, Token:${mCache.tokens.length}, Quality:${mCache.qualities.length}, Data:${recs.length}`, "#d4edda");
+        setStatus(`Synced! Party:${mCache.parties.length}, Token:${mCache.tokens.length}, Quality:${mCache.qualities.length}, Data:${mergedRecs.length}`, "#d4edda");
       }
     } else {
       throw new Error((data && data.message) || "Cloud sync failed");
@@ -1285,7 +1343,6 @@ function renderDashboard() {
   }
 }
 
-/* --- EXACT-FIT REPORT PHOTO WITHOUT BLANK ROWS --- */
 function getMonthLabelFromRows(rows) {
   const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   for (const r of rows) {
@@ -1785,7 +1842,7 @@ function pickTodayDate() {
 function prependStoredRecord(item) {
   const list = getStoredRecords();
   list.unshift(item);
-  saveStoredRecords(list.slice(0, 200));
+  saveStoredRecords(list.slice(0, 300));
   renderRecent();
   populateDashDropdowns();
   renderDashboard();
@@ -2156,14 +2213,15 @@ async function submitEntry() {
     const checkRes = await fetch(checkUrl, { method: "GET", cache: "no-store" });
     const checkData = await checkRes.json();
     if (checkData && checkData.status === "ok" && Array.isArray(checkData.records)) {
-      saveStoredRecords(checkData.records.slice().reverse());
+      const merged = mergeCloudWithLocal(checkData.records);
+      saveStoredRecords(merged);
       renderRecent();
       populateDashDropdowns();
       renderDashboard();
       populateDoPressDropdown();
       renderDoReportTab();
-      if (isDuplicatePno(pnoVal, checkData.records)) {
-        applyNextSerialPno(checkData.records);
+      if (isDuplicatePno(pnoVal, merged)) {
+        applyNextSerialPno(merged);
         setStatus(`Duplicate ${docLabel} (${pnoVal})! Cloud me pehle se hai.`, "#ffcccc");
         alert(`Duplicate ${docLabel}!\n${docLabel} "${pnoVal}" cloud me pehle se save hai. Agla serial set kar diya gaya hai.`);
         return;
