@@ -94,7 +94,9 @@
   .item { border-bottom: 1px solid #e2e8f0; padding: 9px 2px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .item:last-child { border-bottom: none; }
   .grp-tag { display: inline-block; background: #e6fffa; color: #0f766e; border: 1px solid #99f6e4; border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: bold; margin-top: 2px; margin-right: 4px; }
+  .do-tag { display: inline-block; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: bold; margin-top: 2px; }
   .st-toggle-ok { background: #dcfce7; color: #166534; border: 1px solid #86efac; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
+  .st-toggle-part { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
   .st-toggle-pend { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
   .item-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; flex-shrink: 0; width: 148px; }
   .btn-grp-send { grid-column: 1 / -1; background: #0f766e; color: #fff; border: none; border-radius: 5px; padding: 6px 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
@@ -248,7 +250,7 @@
 
     <div class="recent">
       <div class="recent-head">
-        <h3>Recent Entries</h3>
+        <h3>Recent Entries (Open Slip Only)</h3>
         <input type="text" id="dataFilterInp" class="filter-inp" placeholder="Search Party / DO / No..." oninput="renderRecent()">
       </div>
       <div id="recentList"><div style="color:#64748b;font-size:12px;">Data load ho raha hai...</div></div>
@@ -274,7 +276,7 @@
         <div class="sub" id="kpiTotalCount">0 Entries</div>
       </div>
       <div class="kpi-card kpi-orange">
-        <small>DO OK / Pending</small>
+        <small>DO OK / Pending Bales</small>
         <div class="val" id="kpiReportStatus">0 / 0</div>
         <div class="sub" id="kpiTopParty">Top: -</div>
       </div>
@@ -292,9 +294,10 @@
           <option value="DO">D.O. ENTRY ONLY</option>
         </select>
         <select id="dashStatusFilter" onchange="renderDashboard()">
-          <option value="ALL">REPORT: OK + PENDING</option>
-          <option value="OK">REPORT: OK ONLY</option>
-          <option value="PENDING">REPORT: PENDING ONLY</option>
+          <option value="ALL">ALL STATUS</option>
+          <option value="OK">OK ONLY</option>
+          <option value="PARTIAL">PARTIAL ONLY</option>
+          <option value="PENDING">PENDING ONLY</option>
         </select>
       </div>
       <div class="dash-filters">
@@ -334,15 +337,15 @@
     <div class="do-mini-kpis">
       <div class="do-mini-card">
         <b id="doKpiTotal">0</b>
-        <span>TOTAL DO</span>
+        <span>TOTAL DO BALES</span>
       </div>
       <div class="do-mini-card pend">
         <b id="doKpiPending">0</b>
-        <span>PENDING DO</span>
+        <span>PENDING BALES</span>
       </div>
       <div class="do-mini-card ok">
         <b id="doKpiOk">0</b>
-        <span>OK DO</span>
+        <span>OK BALES</span>
       </div>
     </div>
 
@@ -353,9 +356,10 @@
       </div>
       <div class="dash-filters">
         <select id="doStatusFilter" onchange="renderDoReportTab()">
-          <option value="ALL">ALL DO (OK + PENDING)</option>
-          <option value="PENDING">PENDING ONLY</option>
-          <option value="OK">OK ONLY</option>
+          <option value="ALL">ALL DO</option>
+          <option value="PENDING">PENDING BALES ONLY</option>
+          <option value="PARTIAL">PARTIAL (OK + PENDING)</option>
+          <option value="OK">FULL OK ONLY</option>
         </select>
         <select id="doPressFilter" onchange="renderDoReportTab()">
           <option value="ALL">ALL PRESS</option>
@@ -364,7 +368,7 @@
       <div class="dash-filters">
         <input type="text" id="doSearchInp" placeholder="Search DO / Party / Press..." oninput="renderDoReportTab()" style="grid-column: 1 / -1;">
       </div>
-      <div id="doTabSummary" style="font-size:12px;font-weight:bold;color:#1f497d;margin-bottom:8px;">Showing: 0 DO • Bales: 0</div>
+      <div id="doTabSummary" style="font-size:12px;font-weight:bold;color:#1f497d;margin-bottom:8px;">Showing: 0 DO • Total: 0 • OK: 0 • Pending: 0</div>
       <div class="dash-btn-row">
         <button type="button" class="btn-rep-photo" style="background:#0369a1;" onclick="openDoReportPhoto()">🖼️ DO REPORT PHOTO</button>
         <button type="button" class="btn-wa-sum" onclick="sendDoReportWhatsApp()">💬 DO WA REPORT</button>
@@ -373,7 +377,7 @@
 
     <div class="dash-box">
       <div class="dash-box-head">
-        <h3>Press-Wise DO Workload</h3>
+        <h3>Press-Wise DO Bales</h3>
         <small style="color:#64748b;font-weight:bold;">OK vs Pending</small>
       </div>
       <div id="doPressSummaryList"><div style="color:#64748b;font-size:12px;">Koi Press data nahi hai.</div></div>
@@ -381,11 +385,32 @@
 
     <div class="dash-box">
       <div class="dash-box-head">
-        <h3>DO Entries (Tap OK / PENDING to Update)</h3>
-        <small style="color:#64748b;font-weight:bold;">Status Toggle</small>
+        <h3>DO Entries (Tap to Set OK / Pending Bales)</h3>
+        <small style="color:#64748b;font-weight:bold;">Partial Allowed</small>
       </div>
       <div id="doReportList"><div style="color:#64748b;font-size:12px;">Koi DO entry nahi hai.</div></div>
     </div>
+  </div>
+</div>
+
+<!-- PARTIAL / OK / PENDING DO BALES MODAL -->
+<div class="modal-backdrop" id="doStatusModal" onclick="backdropClose(event, 'doStatusModal')">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="doStatusModalTitle">DO Report Status</h3>
+      <button class="close-x" onclick="closeModal('doStatusModal')">✕</button>
+    </div>
+    <div id="doStatusInfoText" style="font-size:13px;font-weight:bold;color:#1f497d;margin-bottom:10px;"></div>
+    <div class="slip-cfg-box">
+      <label>Kitni Bales OK ho gayi hain? (0 se Total Bales ke beech):</label>
+      <input type="number" id="doOkBalesInput" min="0" inputmode="numeric" oninput="previewDoSplit()">
+      <div id="doSplitPreview" style="font-size:12px;font-weight:bold;color:#0f172a;margin-top:4px;"></div>
+    </div>
+    <div class="slip-btns" style="margin-bottom:8px;">
+      <button type="button" style="background:#16a34a;" onclick="setAllDoOk()">ALL OK</button>
+      <button type="button" style="background:#d97706;" onclick="setAllDoPending()">ALL PENDING</button>
+    </div>
+    <button type="button" class="btn-save" style="margin-top:0;padding:11px;font-size:14px;" onclick="saveDoSplitStatus()">SAVE REPORT STATUS</button>
   </div>
 </div>
 
@@ -420,11 +445,11 @@
   </div>
 </div>
 
-<!-- WHATSAPP SLIP PHOTO & PARTY GROUP MODAL -->
+<!-- WHATSAPP SLIP PHOTO & PARTY GROUP MODAL (OPEN PAVATI ONLY) -->
 <div class="modal-backdrop" id="slipModal" onclick="backdropClose(event, 'slipModal')">
   <div class="modal-card">
     <div class="modal-head">
-      <h3 id="slipModalTitle">Slip & Group</h3>
+      <h3 id="slipModalTitle">Open Pavati Slip & Group</h3>
       <button class="close-x" onclick="closeModal('slipModal')">✕</button>
     </div>
     <div class="slip-img-wrap">
@@ -478,6 +503,7 @@ let calMonth = new Date().getMonth();
 let activeSlipItem = null;
 let activeSlipDataUrl = "";
 let activeSlipBlob = null;
+let activeDoEditItem = null;
 let activeReportDataUrl = "";
 let activeReportBlob = null;
 let activeReportLabel = "Report";
@@ -485,6 +511,23 @@ let visibleRecords = [];
 let visibleDoRecords = [];
 let dashFilteredRows = [];
 let deferredInstallPrompt = null;
+
+function isDoRecord(r) {
+  return Boolean(r) && String(r.entry_type || "PAVATI").toUpperCase() === "DO";
+}
+
+function getDoSplit(r) {
+  const total = Math.max(0, parseInt(r && r.bales, 10) || 0);
+  const rawOk = r && r.ok_bales !== undefined && r.ok_bales !== null && r.ok_bales !== ""
+    ? parseInt(r.ok_bales, 10)
+    : (String(r && r.report_status || "").toUpperCase() === "OK" ? total : 0);
+  const ok = Math.max(0, Math.min(total, isNaN(rawOk) ? 0 : rawOk));
+  const pending = Math.max(0, total - ok);
+  let status = "PENDING";
+  if (total > 0 && ok >= total) status = "OK";
+  else if (ok > 0 && pending > 0) status = "PARTIAL";
+  return { total, ok, pending, status };
+}
 
 function setEntryMode(mode) {
   entryMode = mode === "DO" ? "DO" : "PAVATI";
@@ -844,38 +887,91 @@ async function pullFromCloud(silent = true) {
   }
 }
 
-async function updateDoStatusByRecord(target) {
-  if (!target) return;
-  const curSt = String(target.report_status || "PENDING").toUpperCase();
-  const nextSt = curSt === "OK" ? "PENDING" : "OK";
+/* --- PARTIAL / OK / PENDING BALES MODAL FOR DO --- */
+function openDoStatusModal(idx) {
+  const r = visibleDoRecords[idx];
+  if (!r) return;
+  activeDoEditItem = r;
+  const split = getDoSplit(r);
+
+  document.getElementById("doStatusModalTitle").textContent = `DO-${r.p_no || "-"} • ${r.party}`;
+  document.getElementById("doStatusInfoText").textContent =
+    `Total DO Bales: ${split.total} | Bales: ${r.bale_no || "-"} | Press: ${r.press_name || "-"}`;
+
+  const inp = document.getElementById("doOkBalesInput");
+  inp.max = String(split.total);
+  inp.value = String(split.ok);
+
+  previewDoSplit();
+  document.getElementById("doStatusModal").style.display = "flex";
+}
+
+function previewDoSplit() {
+  if (!activeDoEditItem) return;
+  const total = Math.max(0, parseInt(activeDoEditItem.bales, 10) || 0);
+  let ok = parseInt(document.getElementById("doOkBalesInput").value, 10);
+  if (isNaN(ok) || ok < 0) ok = 0;
+  if (ok > total) {
+    ok = total;
+    document.getElementById("doOkBalesInput").value = String(total);
+  }
+  const pending = total - ok;
+  const st = total > 0 && ok >= total ? "OK" : (ok > 0 ? "PARTIAL" : "PENDING");
+  document.getElementById("doSplitPreview").textContent =
+    `Status: ${st}  →  OK Bales: ${ok}  |  Pending Bales: ${pending}`;
+}
+
+function setAllDoOk() {
+  if (!activeDoEditItem) return;
+  document.getElementById("doOkBalesInput").value = String(parseInt(activeDoEditItem.bales, 10) || 0);
+  previewDoSplit();
+}
+
+function setAllDoPending() {
+  document.getElementById("doOkBalesInput").value = "0";
+  previewDoSplit();
+}
+
+async function saveDoSplitStatus() {
+  if (!activeDoEditItem) return;
+  const total = Math.max(0, parseInt(activeDoEditItem.bales, 10) || 0);
+  let ok = parseInt(document.getElementById("doOkBalesInput").value, 10);
+  if (isNaN(ok) || ok < 0) ok = 0;
+  if (ok > total) ok = total;
+  const pending = total - ok;
+  const nextSt = total > 0 && ok >= total ? "OK" : (ok > 0 ? "PARTIAL" : "PENDING");
 
   const all = getStoredRecords();
   for (const r of all) {
     if (!r) continue;
-    const sameId = target.sync_id && r.sync_id && r.sync_id === target.sync_id;
-    const sameDoc = !target.sync_id &&
-      String(r.entry_type || "PAVATI").toUpperCase() === "DO" &&
-      String(r.p_no || "") === String(target.p_no || "") &&
-      String(r.party || "") === String(target.party || "");
+    const sameId = activeDoEditItem.sync_id && r.sync_id && r.sync_id === activeDoEditItem.sync_id;
+    const sameDoc = !activeDoEditItem.sync_id &&
+      isDoRecord(r) &&
+      String(r.p_no || "") === String(activeDoEditItem.p_no || "") &&
+      String(r.party || "") === String(activeDoEditItem.party || "");
     if (sameId || sameDoc) {
+      r.ok_bales = ok;
+      r.pending_bales = pending;
       r.report_status = nextSt;
     }
   }
   saveStoredRecords(all);
-  renderRecent();
+  closeModal("doStatusModal");
   renderDashboard();
   populateDoPressDropdown();
   renderDoReportTab();
 
   const apiUrl = (localStorage.getItem(STORAGE_URL_KEY) || "").trim();
-  if (apiUrl && target.sync_id) {
+  if (apiUrl && activeDoEditItem.sync_id) {
     try {
       await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
           action: "update_status",
-          sync_id: target.sync_id,
+          sync_id: activeDoEditItem.sync_id,
+          ok_bales: ok,
+          pending_bales: pending,
           report_status: nextSt
         })
       });
@@ -883,13 +979,9 @@ async function updateDoStatusByRecord(target) {
   }
 }
 
-function toggleDoReportStatus(idx) {
-  const target = visibleDoRecords[idx];
-  updateDoStatusByRecord(target);
-}
-
+/* --- DO REPORT LOGIC --- */
 function getAllDoRows() {
-  return getStoredRecords().filter(r => r && String(r.entry_type || "").toUpperCase() === "DO");
+  return getStoredRecords().filter(r => isDoRecord(r));
 }
 
 function populateDoPressDropdown() {
@@ -904,11 +996,10 @@ function populateDoPressDropdown() {
 }
 
 function getPriorityScore(r) {
-  const isPend = String(r.report_status || "PENDING").toUpperCase() !== "OK";
-  if (!isPend) return -1000;
+  const sp = getDoSplit(r);
+  if (sp.pending <= 0) return -1000;
   const days = daysPendingCount(r.v_date);
-  const bales = parseInt(r.bales, 10) || 0;
-  return (days * 100) + bales;
+  return (days * 100) + sp.pending;
 }
 
 function getFilteredDoRows() {
@@ -917,12 +1008,14 @@ function getFilteredDoRows() {
   const q = document.getElementById("doSearchInp") ? document.getElementById("doSearchInp").value.trim().toLowerCase() : "";
 
   const filtered = getAllDoRows().filter(r => {
-    const st = String(r.report_status || "PENDING").toUpperCase();
+    const sp = getDoSplit(r);
     const pr = String(r.press_name || "").trim();
-    if (stFilter !== "ALL" && st !== stFilter) return false;
+    if (stFilter === "PENDING" && sp.pending <= 0) return false;
+    if (stFilter === "PARTIAL" && sp.status !== "PARTIAL") return false;
+    if (stFilter === "OK" && sp.status !== "OK") return false;
     if (pressFilter !== "ALL" && pr !== pressFilter) return false;
     if (q) {
-      const hay = `${r.v_date} ${r.p_no} ${r.party} ${r.token} ${r.quality} ${r.bale_no} ${r.than || ""} ${pr} ${st}`.toLowerCase();
+      const hay = `${r.v_date} ${r.p_no} ${r.party} ${r.token} ${r.quality} ${r.bale_no} ${r.than || ""} ${pr} ${sp.status}`.toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
@@ -935,29 +1028,39 @@ function renderDoReportTab() {
   const allDo = getAllDoRows();
   visibleDoRecords = getFilteredDoRows();
 
-  const okRows = allDo.filter(r => String(r.report_status || "PENDING").toUpperCase() === "OK");
-  const pendRows = allDo.filter(r => String(r.report_status || "PENDING").toUpperCase() !== "OK");
-  const pendBales = pendRows.reduce((s, r) => s + (parseInt(r.bales, 10) || 0), 0);
+  let allTotalB = 0, allOkB = 0, allPendB = 0;
+  for (const r of allDo) {
+    const sp = getDoSplit(r);
+    allTotalB += sp.total;
+    allOkB += sp.ok;
+    allPendB += sp.pending;
+  }
 
-  document.getElementById("doKpiTotal").textContent = allDo.length;
-  document.getElementById("doKpiPending").textContent = pendRows.length;
-  document.getElementById("doKpiOk").textContent = okRows.length;
+  document.getElementById("doKpiTotal").textContent = allTotalB;
+  document.getElementById("doKpiPending").textContent = allPendB;
+  document.getElementById("doKpiOk").textContent = allOkB;
   document.getElementById("doTabBadge").textContent = `${allDo.length} DO`;
 
-  const visBales = visibleDoRecords.reduce((s, r) => s + (parseInt(r.bales, 10) || 0), 0);
+  let visTotalB = 0, visOkB = 0, visPendB = 0;
+  for (const r of visibleDoRecords) {
+    const sp = getDoSplit(r);
+    visTotalB += sp.total;
+    visOkB += sp.ok;
+    visPendB += sp.pending;
+  }
   document.getElementById("doTabSummary").textContent =
-    `Showing: ${visibleDoRecords.length} DO • Bales: ${visBales} • Pending Bales: ${pendBales}`;
+    `Showing: ${visibleDoRecords.length} DO • Total: ${visTotalB} • OK: ${visOkB} • Pending: ${visPendB}`;
 
   const pressStats = {};
   for (const r of allDo) {
     const pr = String(r.press_name || "No Press").trim();
-    if (!pressStats[pr]) pressStats[pr] = { total: 0, bales: 0, ok: 0, pend: 0 };
-    pressStats[pr].total += 1;
-    pressStats[pr].bales += (parseInt(r.bales, 10) || 0);
-    if (String(r.report_status || "PENDING").toUpperCase() === "OK") pressStats[pr].ok += 1;
-    else pressStats[pr].pend += 1;
+    const sp = getDoSplit(r);
+    if (!pressStats[pr]) pressStats[pr] = { totalB: 0, okB: 0, pendB: 0 };
+    pressStats[pr].totalB += sp.total;
+    pressStats[pr].okB += sp.ok;
+    pressStats[pr].pendB += sp.pending;
   }
-  const pressEntries = Object.entries(pressStats).sort((a, b) => b[1].pend - a[1].pend || b[1].bales - a[1].bales);
+  const pressEntries = Object.entries(pressStats).sort((a, b) => b[1].pendB - a[1].pendB || b[1].totalB - a[1].totalB);
   const pBox = document.getElementById("doPressSummaryList");
   if (!pressEntries.length) {
     pBox.innerHTML = `<div style="color:#64748b;font-size:12px;">Koi Press data nahi hai.</div>`;
@@ -966,11 +1069,11 @@ function renderDoReportTab() {
       <div class="item">
         <div>
           <b>${escapeHtml(prName)}</b><br>
-          <small style="color:#64748b;">${stObj.total} DO • ${stObj.bales} Bales</small>
+          <small style="color:#64748b;">Total: ${stObj.totalB} Bales</small>
         </div>
         <div style="text-align:right;font-size:11px;font-weight:bold;">
-          <span style="color:#b45309;">Pending: ${stObj.pend}</span> •
-          <span style="color:#15803d;">OK: ${stObj.ok}</span>
+          <span style="color:#b45309;">Pending: ${stObj.pendB}</span> •
+          <span style="color:#15803d;">OK: ${stObj.okB}</span>
         </div>
       </div>
     `).join("");
@@ -983,12 +1086,12 @@ function renderDoReportTab() {
   }
 
   listBox.innerHTML = visibleDoRecords.map((r, idx) => {
-    const st = String(r.report_status || "PENDING").toUpperCase();
-    const btnCls = st === "OK" ? "st-toggle-ok" : "st-toggle-pend";
+    const sp = getDoSplit(r);
+    const btnCls = sp.status === "OK" ? "st-toggle-ok" : (sp.status === "PARTIAL" ? "st-toggle-part" : "st-toggle-pend");
     const ageDays = daysPendingCount(r.v_date);
     let prioTag = "";
-    if (st !== "OK") {
-      if (ageDays >= 3 || (parseInt(r.bales, 10) || 0) >= 15) {
+    if (sp.pending > 0) {
+      if (ageDays >= 3 || sp.pending >= 10) {
         prioTag = `<span class="prio-high">URGENT (${ageDays}d)</span>`;
       } else {
         prioTag = `<span class="prio-med">DUE (${ageDays}d)</span>`;
@@ -999,11 +1102,11 @@ function renderDoReportTab() {
       <div class="item">
         <div>
           <b>DO-${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})${prioTag}<br>
-          <small style="color:#64748b;">${escapeHtml(r.v_date)} • ${escapeHtml(String(r.bales))} Bales${r.than ? " • Tempo: " + escapeHtml(r.than) : ""}</small><br>
-          <small style="color:#1f497d;font-weight:bold;">Press: ${escapeHtml(r.press_name || "-")}</small>
+          <small style="color:#64748b;">${escapeHtml(r.v_date)} • Total: <b>${sp.total}</b> • OK: <b style="color:#15803d;">${sp.ok}</b> • Pending: <b style="color:#b45309;">${sp.pending}</b></small><br>
+          <small style="color:#1f497d;font-weight:bold;">Press: ${escapeHtml(r.press_name || "-")}${r.than ? " • Tempo: " + escapeHtml(r.than) : ""}</small>
         </div>
         <div style="text-align:right;flex-shrink:0;">
-          <button type="button" class="${btnCls}" onclick="toggleDoReportStatus(${idx})">${st} (Tap)</button>
+          <button type="button" class="${btnCls}" onclick="openDoStatusModal(${idx})">${sp.status} (${sp.ok}/${sp.total})</button>
         </div>
       </div>
     `;
@@ -1046,7 +1149,7 @@ function renderDashboard() {
   let todayBales = 0, todayCnt = 0;
   let monthBales = 0, monthCnt = 0;
   let totalBales = 0, totalCnt = all.length;
-  let doOk = 0, doPend = 0;
+  let doOkBales = 0, doPendBales = 0;
 
   const partyTotals = {};
   const dateTotals = {};
@@ -1056,12 +1159,11 @@ function renderDashboard() {
     const b = parseInt(r.bales, 10) || 0;
     const dt = String(r.v_date || "").trim();
     const p = String(r.party || "Unknown").trim();
-    const rType = String(r.entry_type || "PAVATI").toUpperCase();
-    const st = String(r.report_status || "PENDING").toUpperCase();
 
-    if (rType === "DO") {
-      if (st === "OK") doOk += 1;
-      else doPend += 1;
+    if (isDoRecord(r)) {
+      const sp = getDoSplit(r);
+      doOkBales += sp.ok;
+      doPendBales += sp.pending;
     }
 
     totalBales += b;
@@ -1092,7 +1194,7 @@ function renderDashboard() {
   document.getElementById("kpiMonthCount").textContent = `${monthCnt} Entries`;
   document.getElementById("kpiTotalBales").textContent = totalBales;
   document.getElementById("kpiTotalCount").textContent = `${totalCnt} Entries`;
-  document.getElementById("kpiReportStatus").textContent = `${doOk} / ${doPend}`;
+  document.getElementById("kpiReportStatus").textContent = `${doOkBales} / ${doPendBales}`;
   document.getElementById("kpiTopParty").textContent = partyEntries.length
     ? `Top: ${partyEntries[0][0]} (${partyEntries[0][1].bales})`
     : "Top: -";
@@ -1104,10 +1206,15 @@ function renderDashboard() {
 
   dashFilteredRows = all.filter(r => {
     if (!r) return false;
-    const rType = String(r.entry_type || "PAVATI").toUpperCase();
-    const rSt = String(r.report_status || "PENDING").toUpperCase();
-    if (selType !== "ALL" && rType !== selType) return false;
-    if (selSt !== "ALL" && rSt !== selSt) return false;
+    const isDo = isDoRecord(r);
+    if (selType === "PAVATI" && isDo) return false;
+    if (selType === "DO" && !isDo) return false;
+    if (selSt !== "ALL" && isDo) {
+      const sp = getDoSplit(r);
+      if (selSt === "OK" && sp.status !== "OK") return false;
+      if (selSt === "PARTIAL" && sp.status !== "PARTIAL") return false;
+      if (selSt === "PENDING" && sp.pending <= 0) return false;
+    }
     if (selP !== "ALL" && String(r.party || "").trim() !== selP) return false;
     if (selD !== "ALL" && String(r.v_date || "").trim() !== selD) return false;
     return true;
@@ -1154,7 +1261,7 @@ function renderDashboard() {
   }
 }
 
-/* --- REGISTER LEDGER REPORT PHOTO (NO PAGE NO, NO TO, NO MOBILE NO) --- */
+/* --- REGISTER LEDGER REPORT PHOTO --- */
 function getMonthLabelFromRows(rows) {
   const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   for (const r of rows) {
@@ -1239,16 +1346,16 @@ function buildRegisterReportCanvas(rows, options = {}) {
   const c0 = M;
   const c1 = 152;
   const c2 = 250;
-  const c3 = isDoReport ? 500 : 655;
-  const c4 = isDoReport ? 585 : 762;
-  const c4b = 755;
+  const c3 = isDoReport ? 510 : 655;
+  const c4 = isDoReport ? 590 : 762;
+  const c4b = 735;
   const c5 = W - M;
 
   ctx.fillStyle = "#1f2428";
   ctx.fillRect(c0, headerBottomY, c5 - c0, tableHeaderH);
 
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 19px Arial";
+  ctx.font = "bold 18px Arial";
   ctx.textAlign = "center";
   ctx.fillText("Date", (c0 + c1) / 2, headerBottomY + 31);
   ctx.fillText("Token", (c1 + c2) / 2, headerBottomY + 31);
@@ -1257,9 +1364,9 @@ function buildRegisterReportCanvas(rows, options = {}) {
 
   if (isDoReport) {
     ctx.fillText("Press Name", (c4 + c4b) / 2, headerBottomY + 31);
-    ctx.fillText("Report Status", (c4b + c5) / 2, headerBottomY + 31);
+    ctx.fillText("OK / Pending", (c4b + c5) / 2, headerBottomY + 31);
   } else {
-    ctx.fillText("DO / P.No", (c4 + c5) / 2, headerBottomY + 31);
+    ctx.fillText("Pavati No.", (c4 + c5) / 2, headerBottomY + 31);
   }
 
   ctx.strokeStyle = "#ffffff";
@@ -1273,7 +1380,7 @@ function buildRegisterReportCanvas(rows, options = {}) {
   }
 
   const rowsStartY = headerBottomY + tableHeaderH;
-  let sumQty = 0;
+  let sumQty = 0, sumOk = 0, sumPend = 0;
 
   for (let i = 0; i < totalSlots; i++) {
     const yTop = rowsStartY + (i * rowH);
@@ -1289,9 +1396,11 @@ function buildRegisterReportCanvas(rows, options = {}) {
 
     const r = orderedRows[i];
     if (r) {
-      const q = parseInt(r.bales, 10) || 0;
-      sumQty += q;
-      const isDo = String(r.entry_type || "PAVATI").toUpperCase() === "DO";
+      const sp = getDoSplit(r);
+      sumQty += sp.total;
+      sumOk += sp.ok;
+      sumPend += sp.pending;
+      const isDo = isDoRecord(r);
 
       ctx.fillStyle = "#111827";
       ctx.font = "bold 16px Arial";
@@ -1303,23 +1412,22 @@ function buildRegisterReportCanvas(rows, options = {}) {
       const detailText = isDoReport
         ? `${r.party || ""} • ${r.bale_no || ""}`
         : (partyVal === "ALL PARTIES" ? `${r.party || ""} • ${r.bale_no || ""}` : String(r.bale_no || ""));
-      ctx.fillText(detailText.slice(0, isDoReport ? 26 : 38), c2 + 10, yText);
+      ctx.fillText(detailText.slice(0, isDoReport ? 27 : 38), c2 + 10, yText);
 
       ctx.textAlign = "center";
       ctx.fillStyle = "#1a237e";
-      ctx.fillText(String(q), (c3 + c4) / 2, yText);
+      ctx.fillText(String(sp.total), (c3 + c4) / 2, yText);
 
       if (isDoReport) {
         ctx.fillStyle = "#111827";
-        ctx.fillText(String(r.press_name || "-").slice(0, 18), (c4 + c4b) / 2, yText);
+        ctx.fillText(String(r.press_name || "-").slice(0, 15), (c4 + c4b) / 2, yText);
 
-        const st = String(r.report_status || "PENDING").toUpperCase();
-        ctx.fillStyle = st === "OK" ? "#15803d" : "#b45309";
-        ctx.fillText(st, (c4b + c5) / 2, yText);
+        ctx.font = "bold 15px Arial";
+        ctx.fillStyle = sp.pending === 0 ? "#15803d" : "#b45309";
+        ctx.fillText(`${sp.ok} OK / ${sp.pending} P`, (c4b + c5) / 2, yText);
       } else {
         ctx.fillStyle = "#b91c1c";
-        const prefix = isDo ? "DO-" : "#";
-        ctx.fillText(`${prefix}${String(r.p_no || "")}`, (c4 + c5) / 2, yText);
+        ctx.fillText(`#${String(r.p_no || "")}`, (c4 + c5) / 2, yText);
       }
     }
   }
@@ -1346,14 +1454,20 @@ function buildRegisterReportCanvas(rows, options = {}) {
   ctx.stroke();
 
   ctx.fillStyle = "#111111";
-  ctx.font = "bold 19px Arial";
+  ctx.font = "bold 18px Arial";
   ctx.textAlign = "right";
   ctx.fillText(`TOTAL (${orderedRows.length} Entries) :`, c3 - 12, totalRowTop + 31);
 
   ctx.textAlign = "center";
   ctx.fillStyle = "#b91c1c";
-  ctx.font = "bold 21px Arial";
+  ctx.font = "bold 20px Arial";
   ctx.fillText(String(sumQty), (c3 + c4) / 2, totalRowTop + 32);
+
+  if (isDoReport) {
+    ctx.font = "bold 16px Arial";
+    ctx.fillStyle = "#15803d";
+    ctx.fillText(`OK:${sumOk} / P:${sumPend}`, (c4b + c5) / 2, totalRowTop + 31);
+  }
 
   ctx.textAlign = "left";
   return canvas;
@@ -1424,21 +1538,20 @@ function sendDoReportWhatsApp() {
     alert("Abhi koi DO entry nahi mili!");
     return;
   }
-  const totalB = doRows.reduce((s, r) => s + (parseInt(r.bales, 10) || 0), 0);
-  const okC = doRows.filter(r => String(r.report_status || "PENDING").toUpperCase() === "OK").length;
-  const pendC = doRows.length - okC;
-
+  let totalB = 0, okB = 0, pendB = 0;
   const lines = [
     "*HANUMAN TRANSPORT - DO REPORT*",
     "--------------------------------"
   ];
   for (const r of doRows) {
-    const st = String(r.report_status || "PENDING").toUpperCase();
-    lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | Bales:${r.bale_no} | Press:${r.press_name || "-"} | *${st}* | *${r.bales} Bales*`);
+    const sp = getDoSplit(r);
+    totalB += sp.total;
+    okB += sp.ok;
+    pendB += sp.pending;
+    lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | Bales:${r.bale_no} | Press:${r.press_name || "-"} | Total:${sp.total} | *OK:${sp.ok} / Pending:${sp.pending}*`);
   }
   lines.push("--------------------------------");
-  lines.push(`*TOTAL DO:* ${doRows.length} | *OK:* ${okC} | *PENDING:* ${pendC}`);
-  lines.push(`*TOTAL BALES:* *${totalB}*`);
+  lines.push(`*TOTAL BALES:* *${totalB}* | *OK:* *${okB}* | *PENDING:* *${pendB}*`);
 
   const msg = lines.join("\n");
   copyTextSafe(msg);
@@ -1461,12 +1574,13 @@ function sendDashboardWhatsApp() {
     "--------------------------------"
   ];
   for (const r of dashFilteredRows) {
-    const isDo = String(r.entry_type || "PAVATI").toUpperCase() === "DO";
-    const noLbl = isDo ? `DO-${r.p_no || "-"}` : `#${r.p_no || "-"}`;
-    const extra = isDo
-      ? ` | Tempo:${r.than || "-"} | Press:${r.press_name || "-"} | Report:${r.report_status || "PENDING"}`
-      : (r.quality ? ` | Q:${r.quality}` : "");
-    lines.push(`${r.v_date} | ${noLbl} | ${r.party} | ${r.bale_no}${extra} | *${r.bales} Bales*`);
+    if (isDoRecord(r)) {
+      const sp = getDoSplit(r);
+      lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | ${r.bale_no} | Press:${r.press_name || "-"} | *OK:${sp.ok} / Pending:${sp.pending}* | *${sp.total} Bales*`);
+    } else {
+      const q = r.quality ? ` | Q:${r.quality}` : "";
+      lines.push(`${r.v_date} | #${r.p_no || "-"} | ${r.party} | ${r.bale_no}${q} | *${r.bales} Bales*`);
+    }
   }
   lines.push("--------------------------------");
   lines.push(`*TOTAL ENTRIES:* ${dashFilteredRows.length}`);
@@ -1652,23 +1766,33 @@ function renderRecent() {
   }
 
   box.innerHTML = visibleRecords.map((r, idx) => {
-    const isDo = String(r.entry_type || "PAVATI").toUpperCase() === "DO";
-    const noPrefix = isDo ? "DO-" : "#";
+    const isDo = isDoRecord(r);
+    if (isDo) {
+      const sp = getDoSplit(r);
+      return `
+        <div class="item">
+          <div>
+            <b>DO-${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})<br>
+            <small style="color:#64748b;">${escapeHtml(r.v_date)} • Total: ${sp.total} • OK: ${sp.ok} • Pending: ${sp.pending}</small><br>
+            <span class="do-tag">D.O. ENTRY (Slip Only Open Pavati)</span>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <span style="font-size:11px;font-weight:bold;color:#0369a1;">${escapeHtml(sp.status)}</span>
+          </div>
+        </div>
+      `;
+    }
+
     const grp = grpMap[r.party] || "";
     const grpBadge = grp
       ? `<span class="grp-tag">WA Group: ${escapeHtml(grp)}</span>`
       : `<span class="grp-tag" style="background:#f8fafc;color:#64748b;border-color:#cbd5e1;">Group: "Group / Slip"</span>`;
 
-    const doInfo = isDo
-      ? `<br><small style="color:#334155;">${r.press_name ? "Press: " + escapeHtml(r.press_name) : ""}${r.than ? " • Tempo: " + escapeHtml(r.than) : ""}</small>`
-      : "";
-
     return `
       <div class="item">
         <div>
-          <b>${noPrefix}${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})<br>
-          <small style="color:#64748b;">${escapeHtml(r.v_date)} • ${escapeHtml(String(r.bales))} Bales${r.quality ? " • " + escapeHtml(r.quality) : ""}</small>
-          ${doInfo}<br>
+          <b>#${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})<br>
+          <small style="color:#64748b;">${escapeHtml(r.v_date)} • ${escapeHtml(String(r.bales))} Bales${r.quality ? " • " + escapeHtml(r.quality) : ""}</small><br>
           ${grpBadge}
         </div>
         <div class="item-actions">
@@ -1682,8 +1806,7 @@ function renderRecent() {
 }
 
 function buildSlipCanvas(r) {
-  const isDo = String(r.entry_type || "PAVATI").toUpperCase() === "DO";
-  const W = 720, H = 940;
+  const W = 720, H = 900;
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
@@ -1711,12 +1834,12 @@ function buildSlipCanvas(r) {
   ctx.stroke();
 
   ctx.fillStyle = "#222222";
-  ctx.font = "bold 22px Arial";
-  ctx.fillText(isDo ? "DO NO." : "No.", 35, 220);
+  ctx.font = "bold 24px Arial";
+  ctx.fillText("No.", 35, 220);
 
   ctx.fillStyle = "#c0392b";
-  ctx.font = "bold 30px Arial";
-  ctx.fillText(String(r.p_no || ""), isDo ? 132 : 95, 222);
+  ctx.font = "bold 32px Arial";
+  ctx.fillText(String(r.p_no || ""), 95, 222);
 
   ctx.fillStyle = "#222222";
   ctx.font = "bold 24px Arial";
@@ -1736,50 +1859,43 @@ function buildSlipCanvas(r) {
     ["Token", r.token || "", 125],
     ["Quality", r.quality || "", 140],
     ["Bales", r.bale_no || "", 120],
-    [isDo ? "Tempo" : "Than", r.than || "", 125],
+    ["Than", r.than || "", 115],
     ["Total Bale", String(r.bales ?? ""), 175]
   ];
 
-  if (isDo) {
-    rows.push(["Press", r.press_name || "", 125]);
-    rows.push(["Report", r.report_status || "PENDING", 135]);
-  }
-
-  let y = 300;
-  const stepY = isDo ? 72 : 86;
+  let y = 310;
   for (const [label, val, lineStartX] of rows) {
     ctx.fillStyle = "#222222";
-    ctx.font = "bold 22px Arial";
+    ctx.font = "bold 24px Arial";
     ctx.fillText(label, 35, y);
 
     ctx.beginPath();
-    ctx.moveTo(lineStartX, y + 7);
-    ctx.lineTo(W - 35, y + 7);
+    ctx.moveTo(lineStartX, y + 8);
+    ctx.lineTo(W - 35, y + 8);
     ctx.stroke();
 
-    ctx.fillStyle = label === "Report" && String(val).toUpperCase() === "OK" ? "#15803d" : "#1a237e";
-    ctx.font = "bold 24px Arial";
-    ctx.fillText(String(val), lineStartX + 20, y);
-    y += stepY;
+    ctx.fillStyle = "#1a237e";
+    ctx.font = "bold 26px Arial";
+    ctx.fillText(String(val), lineStartX + 25, y);
+    y += 86;
   }
 
   ctx.fillStyle = "#333333";
   ctx.font = "bold 22px Arial";
-  ctx.fillText("Signature", W - 180, H - 55);
+  ctx.fillText("Signature", W - 180, H - 65);
 
   return canvas;
 }
 
 function openSlipModal(idx) {
   const r = visibleRecords[idx];
-  if (!r) return;
+  if (!r || isDoRecord(r)) return;
   activeSlipItem = r;
 
-  const isDo = String(r.entry_type || "PAVATI").toUpperCase() === "DO";
   const canvas = buildSlipCanvas(r);
   activeSlipDataUrl = canvas.toDataURL("image/png");
   document.getElementById("slipPreviewImg").src = activeSlipDataUrl;
-  document.getElementById("slipModalTitle").textContent = `${r.party} • ${isDo ? "DO-" : "#"}${r.p_no || ""}`;
+  document.getElementById("slipModalTitle").textContent = `${r.party} • Pavati #${r.p_no || ""}`;
 
   const grpMap = getPartyGroupMap();
   document.getElementById("slipWaGroupName").value = grpMap[r.party] || "";
@@ -1792,22 +1908,16 @@ function openSlipModal(idx) {
 }
 
 function formatSlipText(r) {
-  const isDo = String(r.entry_type || "PAVATI").toUpperCase() === "DO";
-  const lines = [
+  return [
     "*HANUMAN TRANSPORT - MALEGAON*",
-    `*${isDo ? "DO NO." : "No."}:* ${r.p_no || "-"}  |  *Date:* ${r.v_date || ""}`,
+    `*No.:* ${r.p_no || "-"}  |  *Date:* ${r.v_date || ""}`,
     `*M/s.:* ${r.party || ""}`,
     `*Token:* ${r.token || "-"}`,
     `*Quality:* ${r.quality || "-"}`,
     `*Bales:* ${r.bale_no || ""}`,
-    `*${isDo ? "Tempo No." : "Than"}:* ${r.than || "-"}`,
+    `*Than:* ${r.than || "-"}`,
     `*Total Bale:* *${r.bales}*`
-  ];
-  if (isDo) {
-    lines.push(`*Press Name:* ${r.press_name || "-"}`);
-    lines.push(`*Report:* *${r.report_status || "PENDING"}*`);
-  }
-  return lines.join("\n");
+  ].join("\n");
 }
 
 function copyTextSafe(txt) {
@@ -1818,12 +1928,11 @@ function copyTextSafe(txt) {
 
 async function manualPhotoOnly(idx) {
   const r = visibleRecords[idx];
-  if (!r) return;
+  if (!r || isDoRecord(r)) return;
   const grpMap = getPartyGroupMap();
   const grpName = grpMap[r.party] || "";
   const canvas = buildSlipCanvas(r);
-  const isDo = String(r.entry_type || "PAVATI").toUpperCase() === "DO";
-  const fileName = `${isDo ? "DO" : "Pavati"}_${r.p_no || "hanuman"}.png`;
+  const fileName = `Pavati_${r.p_no || "hanuman"}.png`;
 
   if (navigator.share) {
     try {
@@ -1833,7 +1942,7 @@ async function manualPhotoOnly(idx) {
         if (!navigator.canShare || navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
-            title: `${isDo ? "DO-" : "#"}${r.p_no || ""}`
+            title: `Pavati #${r.p_no || ""}`
           });
           return;
         }
@@ -1854,7 +1963,7 @@ async function manualPhotoOnly(idx) {
 
 function manualTextOnly(idx) {
   const r = visibleRecords[idx];
-  if (!r) return;
+  if (!r || isDoRecord(r)) return;
   const grpMap = getPartyGroupMap();
   const grpName = grpMap[r.party] || "";
   const txt = formatSlipText(r);
@@ -1885,8 +1994,7 @@ async function shareSlipPhotoOnly() {
   savePartyGroupName(activeSlipItem.party, grpName);
   renderRecent();
 
-  const isDo = String(activeSlipItem.entry_type || "PAVATI").toUpperCase() === "DO";
-  const fileName = `${isDo ? "DO" : "Pavati"}_${activeSlipItem.p_no || "hanuman"}.png`;
+  const fileName = `Pavati_${activeSlipItem.p_no || "hanuman"}.png`;
 
   if (navigator.share && activeSlipBlob) {
     try {
@@ -1894,7 +2002,7 @@ async function shareSlipPhotoOnly() {
       if (!navigator.canShare || navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: `${isDo ? "DO-" : "#"}${activeSlipItem.p_no || ""}`
+          title: `Pavati #${activeSlipItem.p_no || ""}`
         });
         return;
       }
@@ -1960,6 +2068,7 @@ async function submitEntry() {
     return;
   }
 
+  const totalBalesVal = parseInt(document.getElementById("bales").value, 10) || 0;
   const payload = {
     sync_id: "MOB-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
     entry_type: entryMode,
@@ -1968,11 +2077,13 @@ async function submitEntry() {
     p_no: pnoVal,
     token: document.getElementById("token").value.trim(),
     quality: document.getElementById("quality").value.trim(),
-    bales: parseInt(document.getElementById("bales").value, 10) || 0,
+    bales: totalBalesVal,
     bale_no: document.getElementById("bale_no").value.trim(),
     than: document.getElementById("than").value.trim(),
     press_name: isDo ? document.getElementById("press_name").value.trim() : "",
-    report_status: isDo ? "PENDING" : ""
+    ok_bales: isDo ? 0 : totalBalesVal,
+    pending_bales: isDo ? totalBalesVal : 0,
+    report_status: isDo ? "PENDING" : "OK"
   };
 
   if (!payload.party || !payload.bales || !payload.bale_no) {
