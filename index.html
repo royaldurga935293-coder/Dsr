@@ -35,7 +35,6 @@
   .install-banner { display: none; background: #fffbeb; border: 1.5px solid #f59e0b; color: #78350f; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 12px; justify-content: space-between; align-items: center; gap: 8px; }
   .install-banner button { background: #1f497d; color: #fff; border: none; border-radius: 6px; padding: 7px 11px; font-weight: bold; font-size: 12px; cursor: pointer; flex-shrink: 0; }
 
-  /* SMART DASHBOARD & ADVANCE AI DO REPORT STYLES */
   .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
   .kpi-card { border-radius: 10px; padding: 13px 14px; color: #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
   .kpi-card small { display: block; font-size: 11px; font-weight: bold; opacity: 0.92; text-transform: uppercase; }
@@ -46,9 +45,6 @@
   .kpi-teal { background: linear-gradient(135deg, #0d9488, #0f766e); }
   .kpi-orange { background: linear-gradient(135deg, #ea580c, #c2410c); }
 
-  .ai-banner { background: linear-gradient(135deg, #0f172a, #1e3a8a); color: #fff; border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; box-shadow: 0 3px 10px rgba(15,23,42,0.2); }
-  .ai-badge { display: inline-block; background: #f59e0b; color: #111; font-size: 10px; font-weight: bold; padding: 2px 7px; border-radius: 99px; margin-bottom: 6px; }
-  .ai-text { font-size: 12px; line-height: 1.45; color: #f8fafc; font-weight: bold; }
   .do-mini-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
   .do-mini-card { background: #fff; border-radius: 8px; padding: 10px 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.06); border-top: 3px solid #0284c7; }
   .do-mini-card.pend { border-top-color: #d97706; }
@@ -75,7 +71,6 @@
   .bar-fill { height: 100%; background: #20b2aa; border-radius: 99px; }
   .party-meta { display: flex; justify-content: space-between; font-size: 11px; color: #64748b; margin-top: 3px; }
 
-  /* ENTRY FORM STYLES */
   .card { background: #20b2aa; color: #fff; border-radius: 10px; padding: 15px; box-shadow: 0 3px 10px rgba(0,0,0,0.12); }
   .card h2 { margin: 0 0 10px; font-size: 15px; text-align: center; letter-spacing: 0.4px; }
   .field { margin-bottom: 10px; }
@@ -150,7 +145,7 @@
 <div class="nav-tabs">
   <button type="button" class="tab-btn active" id="tabEntryBtn" onclick="switchTab('entry')">📝 ENTRY FORM</button>
   <button type="button" class="tab-btn" id="tabDashBtn" onclick="switchTab('dash')">📊 DASHBOARD</button>
-  <button type="button" class="tab-btn" id="tabDoBtn" onclick="switchTab('doreport')">🤖 AI DO REPORT</button>
+  <button type="button" class="tab-btn" id="tabDoBtn" onclick="switchTab('doreport')">📋 DO REPORT</button>
 </div>
 
 <div class="container">
@@ -235,7 +230,7 @@
         </div>
       </div>
 
-      <!-- D.O. SPECIFIC FIELD: PRESS NAME ONLY (REPORT STATUS SET AFTER SAVE IN DO REPORT) -->
+      <!-- D.O. SPECIFIC FIELD: PRESS NAME ONLY -->
       <div id="doExtraFields" style="display:none;">
         <div class="field">
           <label>Press Name (Tap for List)</label>
@@ -260,7 +255,7 @@
     </div>
   </div>
 
-  <!-- TAB 2: SMART DASHBOARD VIEW -->
+  <!-- TAB 2: DASHBOARD VIEW -->
   <div id="dashView" style="display:none;">
     <div class="kpi-grid">
       <div class="kpi-card kpi-green">
@@ -310,10 +305,6 @@
           <option value="ALL">ALL DATES</option>
         </select>
       </div>
-      <div class="dash-filters">
-        <input type="text" id="repToInput" placeholder="To (e.g. Malegaon / Surat)">
-        <input type="text" id="repPageNoInput" placeholder="Page No. (e.g. 535)">
-      </div>
       <div id="dashFilteredSummary" style="font-size:12px;font-weight:bold;color:#1f497d;margin-bottom:8px;">Filtered: 0 Entries • 0 Bales</div>
       <div class="dash-btn-row">
         <button type="button" class="btn-rep-photo" onclick="openRegisterReportModal()">🖼️ REPORT PHOTO</button>
@@ -338,13 +329,8 @@
     </div>
   </div>
 
-  <!-- TAB 3: ADVANCE AI DO REPORT VIEW -->
+  <!-- TAB 3: DO REPORT VIEW -->
   <div id="doReportView" style="display:none;">
-    <div class="ai-banner">
-      <span class="ai-badge">✨ AI DO SMART ANALYZER</span>
-      <div class="ai-text" id="aiDoInsightText">AI DO data ka vishleshan kar raha hai...</div>
-    </div>
-
     <div class="do-mini-kpis">
       <div class="do-mini-card">
         <b id="doKpiTotal">0</b>
@@ -362,13 +348,13 @@
 
     <div class="dash-box">
       <div class="dash-box-head">
-        <h3>📋 ADVANCE DO REPORT</h3>
+        <h3>📋 DO REPORT</h3>
         <span style="font-size:11px;font-weight:bold;color:#0369a1;" id="doTabBadge">0 DO</span>
       </div>
       <div class="dash-filters">
         <select id="doStatusFilter" onchange="renderDoReportTab()">
           <option value="ALL">ALL DO (OK + PENDING)</option>
-          <option value="PENDING">PENDING ONLY (AI URGENT FIRST)</option>
+          <option value="PENDING">PENDING ONLY</option>
           <option value="OK">OK ONLY</option>
         </select>
         <select id="doPressFilter" onchange="renderDoReportTab()">
@@ -376,11 +362,7 @@
         </select>
       </div>
       <div class="dash-filters">
-        <input type="text" id="doSearchInp" placeholder="Search DO / Party / Press..." oninput="renderDoReportTab()">
-        <input type="text" id="doRepPageInput" placeholder="Page No. (e.g. 535)">
-      </div>
-      <div class="dash-filters">
-        <input type="text" id="doRepToInput" placeholder="To (e.g. Malegaon / Surat)" style="grid-column: 1 / -1;">
+        <input type="text" id="doSearchInp" placeholder="Search DO / Party / Press..." oninput="renderDoReportTab()" style="grid-column: 1 / -1;">
       </div>
       <div id="doTabSummary" style="font-size:12px;font-weight:bold;color:#1f497d;margin-bottom:8px;">Showing: 0 DO • Bales: 0</div>
       <div class="dash-btn-row">
@@ -400,7 +382,7 @@
     <div class="dash-box">
       <div class="dash-box-head">
         <h3>DO Entries (Tap OK / PENDING to Update)</h3>
-        <small style="color:#64748b;font-weight:bold;">AI Priority Sorted</small>
+        <small style="color:#64748b;font-weight:bold;">Status Toggle</small>
       </div>
       <div id="doReportList"><div style="color:#64748b;font-size:12px;">Koi DO entry nahi hai.</div></div>
     </div>
@@ -485,7 +467,7 @@ const STORAGE_DATA_KEY = "ht_cloud_records";
 const STORAGE_PARTY_GRP_KEY = "ht_party_wa_groups";
 const STORAGE_PRESS_KEY = "ht_press_master";
 
-let entryMode = "PAVATI"; // "PAVATI" or "DO"
+let entryMode = "PAVATI";
 let popupType = "";
 let popupNextField = "";
 let popupFiltered = [];
@@ -538,7 +520,6 @@ function switchTab(tab) {
   }
 }
 
-/* --- PWA INSTALL PROMPT & SERVICE WORKER --- */
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredInstallPrompt = e;
@@ -617,7 +598,6 @@ function setStatus(msg, color = "#fff3cd") {
   el.textContent = msg;
 }
 
-/* --- BALE NO FORMAT: 1 to 5 --- */
 function calcBales() {
   const qty = parseInt(document.getElementById("bales").value, 10);
   const startRaw = document.getElementById("start_no").value.trim();
@@ -651,7 +631,6 @@ function backdropClose(e, id) {
   if (e.target.id === id) closeModal(id);
 }
 
-/* --- PARTY WHATSAPP GROUP MAPPING --- */
 function getPartyGroupMap() {
   try {
     const obj = JSON.parse(localStorage.getItem(STORAGE_PARTY_GRP_KEY) || "{}");
@@ -674,7 +653,6 @@ function savePartyGroupName(partyName, groupName) {
   localStorage.setItem(STORAGE_PARTY_GRP_KEY, JSON.stringify(map));
 }
 
-/* --- PRESS LIST CACHE --- */
 function getPressList() {
   try {
     const arr = JSON.parse(localStorage.getItem(STORAGE_PRESS_KEY) || "[]");
@@ -694,7 +672,6 @@ function rememberPressName(pressName) {
   }
 }
 
-/* --- SAFE MASTER CACHE & CLOUD PULL --- */
 function cleanStrList(arr) {
   if (!Array.isArray(arr)) return [];
   const out = [];
@@ -867,7 +844,6 @@ async function pullFromCloud(silent = true) {
   }
 }
 
-/* --- TOGGLE REPORT STATUS (OK / PENDING) AFTER DO SAVE --- */
 async function updateDoStatusByRecord(target) {
   if (!target) return;
   const curSt = String(target.report_status || "PENDING").toUpperCase();
@@ -912,7 +888,6 @@ function toggleDoReportStatus(idx) {
   updateDoStatusByRecord(target);
 }
 
-/* --- ADVANCE AI DO REPORT ENGINE --- */
 function getAllDoRows() {
   return getStoredRecords().filter(r => r && String(r.entry_type || "").toUpperCase() === "DO");
 }
@@ -928,7 +903,7 @@ function populateDoPressDropdown() {
   if (presses.includes(cur)) sel.value = cur;
 }
 
-function getAiPriorityScore(r) {
+function getPriorityScore(r) {
   const isPend = String(r.report_status || "PENDING").toUpperCase() !== "OK";
   if (!isPend) return -1000;
   const days = daysPendingCount(r.v_date);
@@ -953,15 +928,13 @@ function getFilteredDoRows() {
     return true;
   });
 
-  // AI Smart Sort: Pending entries with highest urgency (age + bales) first
-  return filtered.sort((a, b) => getAiPriorityScore(b) - getAiPriorityScore(a));
+  return filtered.sort((a, b) => getPriorityScore(b) - getPriorityScore(a));
 }
 
 function renderDoReportTab() {
   const allDo = getAllDoRows();
   visibleDoRecords = getFilteredDoRows();
 
-  const totalB = allDo.reduce((s, r) => s + (parseInt(r.bales, 10) || 0), 0);
   const okRows = allDo.filter(r => String(r.report_status || "PENDING").toUpperCase() === "OK");
   const pendRows = allDo.filter(r => String(r.report_status || "PENDING").toUpperCase() !== "OK");
   const pendBales = pendRows.reduce((s, r) => s + (parseInt(r.bales, 10) || 0), 0);
@@ -971,28 +944,10 @@ function renderDoReportTab() {
   document.getElementById("doKpiOk").textContent = okRows.length;
   document.getElementById("doTabBadge").textContent = `${allDo.length} DO`;
 
-  // AI Insight Banner
-  const aiEl = document.getElementById("aiDoInsightText");
-  if (!allDo.length) {
-    aiEl.textContent = "Abhi koi D.O. Entry nahi hai. ENTRY FORM me D.O. ENTRY chunein aur AI report auto-ready ho jayegi.";
-  } else {
-    const pressPendMap = {};
-    for (const r of pendRows) {
-      const pr = String(r.press_name || "Unassigned Press").trim();
-      pressPendMap[pr] = (pressPendMap[pr] || 0) + (parseInt(r.bales, 10) || 0);
-    }
-    const topPress = Object.entries(pressPendMap).sort((a, b) => b[1] - a[1])[0];
-    const urgentMsg = topPress
-      ? `Sabse zyada pending load "${topPress[0]}" press par (${topPress[1]} Bales) hai.`
-      : "Sabhi DO entries OK mark ho chuki hain!";
-    aiEl.textContent = `Kul ${allDo.length} DO (${totalB} Bales) me se ${pendRows.length} DO PENDING (${pendBales} Bales) aur ${okRows.length} OK hain. ${urgentMsg}`;
-  }
-
   const visBales = visibleDoRecords.reduce((s, r) => s + (parseInt(r.bales, 10) || 0), 0);
   document.getElementById("doTabSummary").textContent =
     `Showing: ${visibleDoRecords.length} DO • Bales: ${visBales} • Pending Bales: ${pendBales}`;
 
-  // Press-Wise Workload Breakdown
   const pressStats = {};
   for (const r of allDo) {
     const pr = String(r.press_name || "No Press").trim();
@@ -1021,7 +976,6 @@ function renderDoReportTab() {
     `).join("");
   }
 
-  // Sorted DO List with AI Priority Badge & 1-Tap OK/Pending Button
   const listBox = document.getElementById("doReportList");
   if (!visibleDoRecords.length) {
     listBox.innerHTML = `<div style="color:#64748b;font-size:12px;">Is filter ke liye koi DO entry nahi mili.</div>`;
@@ -1035,9 +989,9 @@ function renderDoReportTab() {
     let prioTag = "";
     if (st !== "OK") {
       if (ageDays >= 3 || (parseInt(r.bales, 10) || 0) >= 15) {
-        prioTag = `<span class="prio-high">AI HIGH (${ageDays}d)</span>`;
+        prioTag = `<span class="prio-high">URGENT (${ageDays}d)</span>`;
       } else {
-        prioTag = `<span class="prio-med">AI DUE (${ageDays}d)</span>`;
+        prioTag = `<span class="prio-med">DUE (${ageDays}d)</span>`;
       }
     }
 
@@ -1056,7 +1010,6 @@ function renderDoReportTab() {
   }).join("");
 }
 
-/* --- SMART DASHBOARD LOGIC --- */
 function populateDashDropdowns() {
   const all = getStoredRecords();
   const pSel = document.getElementById("dashPartyFilter");
@@ -1201,7 +1154,7 @@ function renderDashboard() {
   }
 }
 
-/* --- REGISTER LEDGER REPORT PHOTO GENERATOR --- */
+/* --- REGISTER LEDGER REPORT PHOTO (NO PAGE NO, NO TO, NO MOBILE NO) --- */
 function getMonthLabelFromRows(rows) {
   const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   for (const r of rows) {
@@ -1223,7 +1176,7 @@ function buildRegisterReportCanvas(rows, options = {}) {
   const rowH = 44;
 
   const W = 900;
-  const headerBottomY = 265;
+  const headerBottomY = 205;
   const tableHeaderH = 48;
   const footerH = 72;
   const H = headerBottomY + tableHeaderH + (totalSlots * rowH) + footerH + 30;
@@ -1268,48 +1221,20 @@ function buildRegisterReportCanvas(rows, options = {}) {
   const selP = document.getElementById("dashPartyFilter").value;
   const partyVal = options.partyLabel || (selP === "ALL" ? "ALL PARTIES" : selP);
   const monthVal = getMonthLabelFromRows(orderedRows);
-  const cache = getMasterCache();
-  const mobileVal = (selP !== "ALL" && cache.phones && cache.phones[selP]) ? cache.phones[selP] : "";
-  const toVal = isDoReport
-    ? (document.getElementById("doRepToInput").value.trim() || document.getElementById("repToInput").value.trim())
-    : document.getElementById("repToInput").value.trim();
-  const pageNoVal = isDoReport
-    ? (document.getElementById("doRepPageInput").value.trim() || document.getElementById("repPageNoInput").value.trim() || "1")
-    : (document.getElementById("repPageNoInput").value.trim() || "1");
 
   ctx.font = "bold 19px Arial";
   ctx.fillStyle = "#111111";
 
-  ctx.fillText("Party Name", 42, 158);
-  ctx.beginPath(); ctx.moveTo(158, 162); ctx.lineTo(540, 162); ctx.stroke();
+  ctx.fillText("Party Name", 42, 152);
+  ctx.beginPath(); ctx.moveTo(158, 156); ctx.lineTo(W - 42, 156); ctx.stroke();
   ctx.fillStyle = "#1a237e";
-  ctx.fillText(partyVal, 168, 156);
+  ctx.fillText(partyVal, 168, 150);
 
   ctx.fillStyle = "#111111";
-  ctx.fillText("To", 552, 158);
-  ctx.beginPath(); ctx.moveTo(585, 162); ctx.lineTo(W - 42, 162); ctx.stroke();
+  ctx.fillText("Month", 42, 188);
+  ctx.beginPath(); ctx.moveTo(112, 192); ctx.lineTo(W - 42, 192); ctx.stroke();
   ctx.fillStyle = "#1a237e";
-  ctx.fillText(toVal, 595, 156);
-
-  ctx.fillStyle = "#111111";
-  ctx.fillText("Month", 42, 202);
-  ctx.beginPath(); ctx.moveTo(112, 206); ctx.lineTo(540, 206); ctx.stroke();
-  ctx.fillStyle = "#1a237e";
-  ctx.fillText(monthVal, 125, 200);
-
-  ctx.fillStyle = "#111111";
-  ctx.fillText("Page No.", 552, 202);
-  ctx.beginPath(); ctx.moveTo(645, 206); ctx.lineTo(W - 42, 206); ctx.stroke();
-  ctx.fillStyle = "#b91c1c";
-  ctx.font = "bold 25px Georgia, serif";
-  ctx.fillText(pageNoVal, 710, 199);
-
-  ctx.font = "bold 19px Arial";
-  ctx.fillStyle = "#111111";
-  ctx.fillText("Mobile No.", 42, 246);
-  ctx.beginPath(); ctx.moveTo(148, 250); ctx.lineTo(540, 250); ctx.stroke();
-  ctx.fillStyle = "#1a237e";
-  ctx.fillText(mobileVal, 162, 244);
+  ctx.fillText(monthVal, 125, 186);
 
   const c0 = M;
   const c1 = 152;
@@ -1375,7 +1300,7 @@ function buildRegisterReportCanvas(rows, options = {}) {
       ctx.fillText(String(r.token || ""), (c1 + c2) / 2, yText);
 
       ctx.textAlign = "left";
-      let detailText = isDoReport
+      const detailText = isDoReport
         ? `${r.party || ""} • ${r.bale_no || ""}`
         : (partyVal === "ALL PARTIES" ? `${r.party || ""} • ${r.bale_no || ""}` : String(r.bale_no || ""));
       ctx.fillText(detailText.slice(0, isDoReport ? 26 : 38), c2 + 10, yText);
@@ -1450,9 +1375,9 @@ function openDoReportPhoto() {
     return;
   }
   const stFilter = document.getElementById("doStatusFilter") ? document.getElementById("doStatusFilter").value : "ALL";
-  const lbl = stFilter === "ALL" ? "AI DO REPORT (ALL)" : `AI DO REPORT (${stFilter})`;
+  const lbl = stFilter === "ALL" ? "DO REPORT (ALL)" : `DO REPORT (${stFilter})`;
   const canvas = buildRegisterReportCanvas(doRows, { isDoReport: true, partyLabel: lbl });
-  showReportCanvasInModal(canvas, "AI DO REPORT PHOTO", "AI_DO_Report");
+  showReportCanvasInModal(canvas, "DO REPORT PHOTO", "DO_Report");
 }
 
 function openRegisterReportModal() {
@@ -1504,7 +1429,7 @@ function sendDoReportWhatsApp() {
   const pendC = doRows.length - okC;
 
   const lines = [
-    "*HANUMAN TRANSPORT - AI DO REPORT*",
+    "*HANUMAN TRANSPORT - DO REPORT*",
     "--------------------------------"
   ];
   for (const r of doRows) {
@@ -1552,7 +1477,6 @@ function sendDashboardWhatsApp() {
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
 }
 
-/* --- SMART SEARCH POPUP (NO KEYBOARD ON FIELD TAP) --- */
 function openSearchPopup(type) {
   if (document.activeElement && document.activeElement.blur) {
     document.activeElement.blur();
@@ -1644,7 +1568,6 @@ function pickPopupValue(val) {
   }
 }
 
-/* --- CALENDAR POPUP --- */
 function openCalendarPopup() {
   if (document.activeElement && document.activeElement.blur) {
     document.activeElement.blur();
@@ -1703,7 +1626,6 @@ function pickTodayDate() {
   selectCalDate(todayStr());
 }
 
-/* --- ENTRIES LIST & MANUAL PHOTO / TEXT / GROUP CONTROLS --- */
 function prependStoredRecord(item) {
   const list = getStoredRecords();
   list.unshift(item);
