@@ -35,7 +35,7 @@
   .install-banner { display: none; background: #fffbeb; border: 1.5px solid #f59e0b; color: #78350f; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 12px; justify-content: space-between; align-items: center; gap: 8px; }
   .install-banner button { background: #1f497d; color: #fff; border: none; border-radius: 6px; padding: 7px 11px; font-weight: bold; font-size: 12px; cursor: pointer; flex-shrink: 0; }
 
-  /* SMART DASHBOARD & DO REPORT STYLES */
+  /* SMART DASHBOARD & ADVANCE AI DO REPORT STYLES */
   .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
   .kpi-card { border-radius: 10px; padding: 13px 14px; color: #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
   .kpi-card small { display: block; font-size: 11px; font-weight: bold; opacity: 0.92; text-transform: uppercase; }
@@ -45,6 +45,19 @@
   .kpi-blue { background: linear-gradient(135deg, #1f497d, #16365c); }
   .kpi-teal { background: linear-gradient(135deg, #0d9488, #0f766e); }
   .kpi-orange { background: linear-gradient(135deg, #ea580c, #c2410c); }
+
+  .ai-banner { background: linear-gradient(135deg, #0f172a, #1e3a8a); color: #fff; border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; box-shadow: 0 3px 10px rgba(15,23,42,0.2); }
+  .ai-badge { display: inline-block; background: #f59e0b; color: #111; font-size: 10px; font-weight: bold; padding: 2px 7px; border-radius: 99px; margin-bottom: 6px; }
+  .ai-text { font-size: 12px; line-height: 1.45; color: #f8fafc; font-weight: bold; }
+  .do-mini-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  .do-mini-card { background: #fff; border-radius: 8px; padding: 10px 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.06); border-top: 3px solid #0284c7; }
+  .do-mini-card.pend { border-top-color: #d97706; }
+  .do-mini-card.ok { border-top-color: #16a34a; }
+  .do-mini-card b { display: block; font-size: 18px; color: #0f172a; }
+  .do-mini-card span { font-size: 10px; font-weight: bold; color: #64748b; }
+
+  .prio-high { display: inline-block; background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: bold; margin-left: 4px; }
+  .prio-med { display: inline-block; background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: bold; margin-left: 4px; }
 
   .dash-box { background: #fff; border-radius: 10px; padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
   .dash-box-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 6px; }
@@ -137,7 +150,7 @@
 <div class="nav-tabs">
   <button type="button" class="tab-btn active" id="tabEntryBtn" onclick="switchTab('entry')">📝 ENTRY FORM</button>
   <button type="button" class="tab-btn" id="tabDashBtn" onclick="switchTab('dash')">📊 DASHBOARD</button>
-  <button type="button" class="tab-btn" id="tabDoBtn" onclick="switchTab('doreport')">📋 DO REPORT</button>
+  <button type="button" class="tab-btn" id="tabDoBtn" onclick="switchTab('doreport')">🤖 AI DO REPORT</button>
 </div>
 
 <div class="container">
@@ -325,26 +338,51 @@
     </div>
   </div>
 
-  <!-- TAB 3: DEDICATED DO REPORT VIEW -->
+  <!-- TAB 3: ADVANCE AI DO REPORT VIEW -->
   <div id="doReportView" style="display:none;">
+    <div class="ai-banner">
+      <span class="ai-badge">✨ AI DO SMART ANALYZER</span>
+      <div class="ai-text" id="aiDoInsightText">AI DO data ka vishleshan kar raha hai...</div>
+    </div>
+
+    <div class="do-mini-kpis">
+      <div class="do-mini-card">
+        <b id="doKpiTotal">0</b>
+        <span>TOTAL DO</span>
+      </div>
+      <div class="do-mini-card pend">
+        <b id="doKpiPending">0</b>
+        <span>PENDING DO</span>
+      </div>
+      <div class="do-mini-card ok">
+        <b id="doKpiOk">0</b>
+        <span>OK DO</span>
+      </div>
+    </div>
+
     <div class="dash-box">
       <div class="dash-box-head">
-        <h3>📋 DO REPORT</h3>
+        <h3>📋 ADVANCE DO REPORT</h3>
         <span style="font-size:11px;font-weight:bold;color:#0369a1;" id="doTabBadge">0 DO</span>
       </div>
       <div class="dash-filters">
         <select id="doStatusFilter" onchange="renderDoReportTab()">
           <option value="ALL">ALL DO (OK + PENDING)</option>
-          <option value="PENDING">PENDING ONLY</option>
+          <option value="PENDING">PENDING ONLY (AI URGENT FIRST)</option>
           <option value="OK">OK ONLY</option>
         </select>
-        <input type="text" id="doSearchInp" placeholder="Search DO / Party / Press...">
+        <select id="doPressFilter" onchange="renderDoReportTab()">
+          <option value="ALL">ALL PRESS</option>
+        </select>
       </div>
       <div class="dash-filters">
-        <input type="text" id="doRepToInput" placeholder="To (e.g. Malegaon / Surat)">
+        <input type="text" id="doSearchInp" placeholder="Search DO / Party / Press..." oninput="renderDoReportTab()">
         <input type="text" id="doRepPageInput" placeholder="Page No. (e.g. 535)">
       </div>
-      <div id="doTabSummary" style="font-size:12px;font-weight:bold;color:#1f497d;margin-bottom:8px;">DO Entries: 0 • Total Bales: 0 • OK: 0 • PENDING: 0</div>
+      <div class="dash-filters">
+        <input type="text" id="doRepToInput" placeholder="To (e.g. Malegaon / Surat)" style="grid-column: 1 / -1;">
+      </div>
+      <div id="doTabSummary" style="font-size:12px;font-weight:bold;color:#1f497d;margin-bottom:8px;">Showing: 0 DO • Bales: 0</div>
       <div class="dash-btn-row">
         <button type="button" class="btn-rep-photo" style="background:#0369a1;" onclick="openDoReportPhoto()">🖼️ DO REPORT PHOTO</button>
         <button type="button" class="btn-wa-sum" onclick="sendDoReportWhatsApp()">💬 DO WA REPORT</button>
@@ -353,8 +391,16 @@
 
     <div class="dash-box">
       <div class="dash-box-head">
+        <h3>Press-Wise DO Workload</h3>
+        <small style="color:#64748b;font-weight:bold;">OK vs Pending</small>
+      </div>
+      <div id="doPressSummaryList"><div style="color:#64748b;font-size:12px;">Koi Press data nahi hai.</div></div>
+    </div>
+
+    <div class="dash-box">
+      <div class="dash-box-head">
         <h3>DO Entries (Tap OK / PENDING to Update)</h3>
-        <small style="color:#64748b;font-weight:bold;">After Save Status</small>
+        <small style="color:#64748b;font-weight:bold;">AI Priority Sorted</small>
       </div>
       <div id="doReportList"><div style="color:#64748b;font-size:12px;">Koi DO entry nahi hai.</div></div>
     </div>
@@ -487,6 +533,7 @@ function switchTab(tab) {
     populateDashDropdowns();
     renderDashboard();
   } else if (tab === "doreport") {
+    populateDoPressDropdown();
     renderDoReportTab();
   }
 }
@@ -532,6 +579,25 @@ function todayStr() {
   return `${dd}/${mm}/${yyyy}`;
 }
 
+function parseDmyDate(dmy) {
+  const parts = String(dmy || "").trim().split("/");
+  if (parts.length !== 3) return null;
+  const dd = parseInt(parts[0], 10);
+  const mm = parseInt(parts[1], 10) - 1;
+  const yyyy = parseInt(parts[2], 10);
+  if (isNaN(dd) || isNaN(mm) || isNaN(yyyy)) return null;
+  return new Date(yyyy, mm, dd);
+}
+
+function daysPendingCount(dmy) {
+  const dt = parseDmyDate(dmy);
+  if (!dt) return 0;
+  const now = new Date();
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diff = Math.floor((todayMidnight - dt) / (1000 * 60 * 60 * 24));
+  return diff > 0 ? diff : 0;
+}
+
 function toggleSettings() {
   const box = document.getElementById("settingsBox");
   box.style.display = box.style.display === "block" ? "none" : "block";
@@ -551,7 +617,7 @@ function setStatus(msg, color = "#fff3cd") {
   el.textContent = msg;
 }
 
-/* --- BALE NO FORMAT: 1 to 5 (LIKE EARLIER) --- */
+/* --- BALE NO FORMAT: 1 to 5 --- */
 function calcBales() {
   const qty = parseInt(document.getElementById("bales").value, 10);
   const startRaw = document.getElementById("start_no").value.trim();
@@ -784,6 +850,7 @@ async function pullFromCloud(silent = true) {
       renderRecent();
       populateDashDropdowns();
       renderDashboard();
+      populateDoPressDropdown();
       renderDoReportTab();
 
       const mCache = getMasterCache();
@@ -821,6 +888,7 @@ async function updateDoStatusByRecord(target) {
   saveStoredRecords(all);
   renderRecent();
   renderDashboard();
+  populateDoPressDropdown();
   renderDoReportTab();
 
   const apiUrl = (localStorage.getItem(STORAGE_URL_KEY) || "").trim();
@@ -844,7 +912,151 @@ function toggleDoReportStatus(idx) {
   updateDoStatusByRecord(target);
 }
 
-/* --- SMART DASHBOARD & DO REPORT LOGIC --- */
+/* --- ADVANCE AI DO REPORT ENGINE --- */
+function getAllDoRows() {
+  return getStoredRecords().filter(r => r && String(r.entry_type || "").toUpperCase() === "DO");
+}
+
+function populateDoPressDropdown() {
+  const sel = document.getElementById("doPressFilter");
+  if (!sel) return;
+  const cur = sel.value || "ALL";
+  const allDo = getAllDoRows();
+  const presses = Array.from(new Set(allDo.map(r => String(r.press_name || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+  sel.innerHTML = `<option value="ALL">ALL PRESS (${presses.length})</option>` +
+    presses.map(pr => `<option value="${escapeHtml(pr)}">${escapeHtml(pr)}</option>`).join("");
+  if (presses.includes(cur)) sel.value = cur;
+}
+
+function getAiPriorityScore(r) {
+  const isPend = String(r.report_status || "PENDING").toUpperCase() !== "OK";
+  if (!isPend) return -1000;
+  const days = daysPendingCount(r.v_date);
+  const bales = parseInt(r.bales, 10) || 0;
+  return (days * 100) + bales;
+}
+
+function getFilteredDoRows() {
+  const stFilter = document.getElementById("doStatusFilter") ? document.getElementById("doStatusFilter").value : "ALL";
+  const pressFilter = document.getElementById("doPressFilter") ? document.getElementById("doPressFilter").value : "ALL";
+  const q = document.getElementById("doSearchInp") ? document.getElementById("doSearchInp").value.trim().toLowerCase() : "";
+
+  const filtered = getAllDoRows().filter(r => {
+    const st = String(r.report_status || "PENDING").toUpperCase();
+    const pr = String(r.press_name || "").trim();
+    if (stFilter !== "ALL" && st !== stFilter) return false;
+    if (pressFilter !== "ALL" && pr !== pressFilter) return false;
+    if (q) {
+      const hay = `${r.v_date} ${r.p_no} ${r.party} ${r.token} ${r.quality} ${r.bale_no} ${r.than || ""} ${pr} ${st}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  // AI Smart Sort: Pending entries with highest urgency (age + bales) first
+  return filtered.sort((a, b) => getAiPriorityScore(b) - getAiPriorityScore(a));
+}
+
+function renderDoReportTab() {
+  const allDo = getAllDoRows();
+  visibleDoRecords = getFilteredDoRows();
+
+  const totalB = allDo.reduce((s, r) => s + (parseInt(r.bales, 10) || 0), 0);
+  const okRows = allDo.filter(r => String(r.report_status || "PENDING").toUpperCase() === "OK");
+  const pendRows = allDo.filter(r => String(r.report_status || "PENDING").toUpperCase() !== "OK");
+  const pendBales = pendRows.reduce((s, r) => s + (parseInt(r.bales, 10) || 0), 0);
+
+  document.getElementById("doKpiTotal").textContent = allDo.length;
+  document.getElementById("doKpiPending").textContent = pendRows.length;
+  document.getElementById("doKpiOk").textContent = okRows.length;
+  document.getElementById("doTabBadge").textContent = `${allDo.length} DO`;
+
+  // AI Insight Banner
+  const aiEl = document.getElementById("aiDoInsightText");
+  if (!allDo.length) {
+    aiEl.textContent = "Abhi koi D.O. Entry nahi hai. ENTRY FORM me D.O. ENTRY chunein aur AI report auto-ready ho jayegi.";
+  } else {
+    const pressPendMap = {};
+    for (const r of pendRows) {
+      const pr = String(r.press_name || "Unassigned Press").trim();
+      pressPendMap[pr] = (pressPendMap[pr] || 0) + (parseInt(r.bales, 10) || 0);
+    }
+    const topPress = Object.entries(pressPendMap).sort((a, b) => b[1] - a[1])[0];
+    const urgentMsg = topPress
+      ? `Sabse zyada pending load "${topPress[0]}" press par (${topPress[1]} Bales) hai.`
+      : "Sabhi DO entries OK mark ho chuki hain!";
+    aiEl.textContent = `Kul ${allDo.length} DO (${totalB} Bales) me se ${pendRows.length} DO PENDING (${pendBales} Bales) aur ${okRows.length} OK hain. ${urgentMsg}`;
+  }
+
+  const visBales = visibleDoRecords.reduce((s, r) => s + (parseInt(r.bales, 10) || 0), 0);
+  document.getElementById("doTabSummary").textContent =
+    `Showing: ${visibleDoRecords.length} DO • Bales: ${visBales} • Pending Bales: ${pendBales}`;
+
+  // Press-Wise Workload Breakdown
+  const pressStats = {};
+  for (const r of allDo) {
+    const pr = String(r.press_name || "No Press").trim();
+    if (!pressStats[pr]) pressStats[pr] = { total: 0, bales: 0, ok: 0, pend: 0 };
+    pressStats[pr].total += 1;
+    pressStats[pr].bales += (parseInt(r.bales, 10) || 0);
+    if (String(r.report_status || "PENDING").toUpperCase() === "OK") pressStats[pr].ok += 1;
+    else pressStats[pr].pend += 1;
+  }
+  const pressEntries = Object.entries(pressStats).sort((a, b) => b[1].pend - a[1].pend || b[1].bales - a[1].bales);
+  const pBox = document.getElementById("doPressSummaryList");
+  if (!pressEntries.length) {
+    pBox.innerHTML = `<div style="color:#64748b;font-size:12px;">Koi Press data nahi hai.</div>`;
+  } else {
+    pBox.innerHTML = pressEntries.map(([prName, stObj]) => `
+      <div class="item">
+        <div>
+          <b>${escapeHtml(prName)}</b><br>
+          <small style="color:#64748b;">${stObj.total} DO • ${stObj.bales} Bales</small>
+        </div>
+        <div style="text-align:right;font-size:11px;font-weight:bold;">
+          <span style="color:#b45309;">Pending: ${stObj.pend}</span> •
+          <span style="color:#15803d;">OK: ${stObj.ok}</span>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  // Sorted DO List with AI Priority Badge & 1-Tap OK/Pending Button
+  const listBox = document.getElementById("doReportList");
+  if (!visibleDoRecords.length) {
+    listBox.innerHTML = `<div style="color:#64748b;font-size:12px;">Is filter ke liye koi DO entry nahi mili.</div>`;
+    return;
+  }
+
+  listBox.innerHTML = visibleDoRecords.map((r, idx) => {
+    const st = String(r.report_status || "PENDING").toUpperCase();
+    const btnCls = st === "OK" ? "st-toggle-ok" : "st-toggle-pend";
+    const ageDays = daysPendingCount(r.v_date);
+    let prioTag = "";
+    if (st !== "OK") {
+      if (ageDays >= 3 || (parseInt(r.bales, 10) || 0) >= 15) {
+        prioTag = `<span class="prio-high">AI HIGH (${ageDays}d)</span>`;
+      } else {
+        prioTag = `<span class="prio-med">AI DUE (${ageDays}d)</span>`;
+      }
+    }
+
+    return `
+      <div class="item">
+        <div>
+          <b>DO-${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})${prioTag}<br>
+          <small style="color:#64748b;">${escapeHtml(r.v_date)} • ${escapeHtml(String(r.bales))} Bales${r.than ? " • Tempo: " + escapeHtml(r.than) : ""}</small><br>
+          <small style="color:#1f497d;font-weight:bold;">Press: ${escapeHtml(r.press_name || "-")}</small>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <button type="button" class="${btnCls}" onclick="toggleDoReportStatus(${idx})">${st} (Tap)</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+/* --- SMART DASHBOARD LOGIC --- */
 function populateDashDropdowns() {
   const all = getStoredRecords();
   const pSel = document.getElementById("dashPartyFilter");
@@ -870,60 +1082,6 @@ function resetDashFilters() {
   document.getElementById("dashPartyFilter").value = "ALL";
   document.getElementById("dashDateFilter").value = "ALL";
   renderDashboard();
-}
-
-function getAllDoRows() {
-  return getStoredRecords().filter(r => r && String(r.entry_type || "").toUpperCase() === "DO");
-}
-
-function getFilteredDoRows() {
-  const stFilter = document.getElementById("doStatusFilter") ? document.getElementById("doStatusFilter").value : "ALL";
-  const q = document.getElementById("doSearchInp") ? document.getElementById("doSearchInp").value.trim().toLowerCase() : "";
-  return getAllDoRows().filter(r => {
-    const st = String(r.report_status || "PENDING").toUpperCase();
-    if (stFilter !== "ALL" && st !== stFilter) return false;
-    if (q) {
-      const hay = `${r.v_date} ${r.p_no} ${r.party} ${r.token} ${r.quality} ${r.bale_no} ${r.than || ""} ${r.press_name || ""} ${st}`.toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
-    return true;
-  });
-}
-
-function renderDoReportTab() {
-  const allDo = getAllDoRows();
-  visibleDoRecords = getFilteredDoRows();
-
-  const totalB = visibleDoRecords.reduce((s, r) => s + (parseInt(r.bales, 10) || 0), 0);
-  const okC = allDo.filter(r => String(r.report_status || "PENDING").toUpperCase() === "OK").length;
-  const pendC = allDo.length - okC;
-
-  document.getElementById("doTabBadge").textContent = `${allDo.length} DO`;
-  document.getElementById("doTabSummary").textContent =
-    `Showing: ${visibleDoRecords.length} DO • Bales: ${totalB} • Total OK: ${okC} • PENDING: ${pendC}`;
-
-  const box = document.getElementById("doReportList");
-  if (!visibleDoRecords.length) {
-    box.innerHTML = `<div style="color:#64748b;font-size:12px;">Koi DO entry nahi mili.</div>`;
-    return;
-  }
-
-  box.innerHTML = visibleDoRecords.map((r, idx) => {
-    const st = String(r.report_status || "PENDING").toUpperCase();
-    const btnCls = st === "OK" ? "st-toggle-ok" : "st-toggle-pend";
-    return `
-      <div class="item">
-        <div>
-          <b>DO-${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})<br>
-          <small style="color:#64748b;">${escapeHtml(r.v_date)} • ${escapeHtml(String(r.bales))} Bales${r.than ? " • Tempo: " + escapeHtml(r.than) : ""}</small><br>
-          <small style="color:#1f497d;font-weight:bold;">Press: ${escapeHtml(r.press_name || "-")}</small>
-        </div>
-        <div style="text-align:right;flex-shrink:0;">
-          <button type="button" class="${btnCls}" onclick="toggleDoReportStatus(${idx})">${st} (Tap)</button>
-        </div>
-      </div>
-    `;
-  }).join("");
 }
 
 function renderDashboard() {
@@ -1059,7 +1217,7 @@ function getMonthLabelFromRows(rows) {
 
 function buildRegisterReportCanvas(rows, options = {}) {
   const isDoReport = Boolean(options.isDoReport);
-  const orderedRows = rows.slice().reverse();
+  const orderedRows = isDoReport ? rows.slice() : rows.slice().reverse();
   const minRows = 16;
   const totalSlots = Math.max(minRows, orderedRows.length);
   const rowH = 44;
@@ -1153,13 +1311,12 @@ function buildRegisterReportCanvas(rows, options = {}) {
   ctx.fillStyle = "#1a237e";
   ctx.fillText(mobileVal, 162, 244);
 
-  // Columns: Date | Token | Bale No. | Qty. | [Press Name | Report Status] (for DO) or [DO / P.No]
   const c0 = M;
-  const c1 = 152; // Date
-  const c2 = 250; // Token
-  const c3 = isDoReport ? 500 : 655; // Bale No.
-  const c4 = isDoReport ? 585 : 762; // Qty.
-  const c4b = 755; // Press Name end / Report Status start (when isDoReport)
+  const c1 = 152;
+  const c2 = 250;
+  const c3 = isDoReport ? 500 : 655;
+  const c4 = isDoReport ? 585 : 762;
+  const c4b = 755;
   const c5 = W - M;
 
   ctx.fillStyle = "#1f2428";
@@ -1293,9 +1450,9 @@ function openDoReportPhoto() {
     return;
   }
   const stFilter = document.getElementById("doStatusFilter") ? document.getElementById("doStatusFilter").value : "ALL";
-  const lbl = stFilter === "ALL" ? "DO REPORT (ALL)" : `DO REPORT (${stFilter})`;
+  const lbl = stFilter === "ALL" ? "AI DO REPORT (ALL)" : `AI DO REPORT (${stFilter})`;
   const canvas = buildRegisterReportCanvas(doRows, { isDoReport: true, partyLabel: lbl });
-  showReportCanvasInModal(canvas, "DO REPORT PHOTO", "DO_Report");
+  showReportCanvasInModal(canvas, "AI DO REPORT PHOTO", "AI_DO_Report");
 }
 
 function openRegisterReportModal() {
@@ -1347,7 +1504,7 @@ function sendDoReportWhatsApp() {
   const pendC = doRows.length - okC;
 
   const lines = [
-    "*HANUMAN TRANSPORT - DO REPORT*",
+    "*HANUMAN TRANSPORT - AI DO REPORT*",
     "--------------------------------"
   ];
   for (const r of doRows) {
@@ -1554,6 +1711,7 @@ function prependStoredRecord(item) {
   renderRecent();
   populateDashDropdowns();
   renderDashboard();
+  populateDoPressDropdown();
   renderDoReportTab();
 }
 
@@ -1914,6 +2072,7 @@ async function submitEntry() {
       renderRecent();
       populateDashDropdowns();
       renderDashboard();
+      populateDoPressDropdown();
       renderDoReportTab();
       if (isDuplicatePno(pnoVal, checkData.records)) {
         applyNextSerialPno(checkData.records);
@@ -1951,6 +2110,7 @@ setEntryMode("PAVATI");
 renderRecent();
 populateDashDropdowns();
 renderDashboard();
+populateDoPressDropdown();
 renderDoReportTab();
 pullFromCloud(true);
 </script>
