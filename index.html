@@ -500,7 +500,7 @@ const STORAGE_PARTY_GRP_KEY = "ht_party_wa_groups";
 const STORAGE_PRESS_KEY = "ht_press_master";
 
 let entryMode = "PAVATI";
-let calendarTarget = "entry"; // "entry" or "dash"
+let calendarTarget = "entry";
 let popupType = "";
 let popupNextField = "";
 let popupFiltered = [];
@@ -1285,6 +1285,7 @@ function renderDashboard() {
   }
 }
 
+/* --- EXACT-FIT REPORT PHOTO WITHOUT BLANK ROWS --- */
 function getMonthLabelFromRows(rows) {
   const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   for (const r of rows) {
@@ -1301,15 +1302,15 @@ function getMonthLabelFromRows(rows) {
 function buildRegisterReportCanvas(rows, options = {}) {
   const isDoReport = Boolean(options.isDoReport);
   const orderedRows = isDoReport ? rows.slice() : rows.slice().reverse();
-  const minRows = 16;
-  const totalSlots = Math.max(minRows, orderedRows.length);
+  const totalSlots = Math.max(1, orderedRows.length);
   const rowH = 44;
 
   const W = 900;
   const headerBottomY = 205;
   const tableHeaderH = 48;
-  const footerH = 72;
-  const H = headerBottomY + tableHeaderH + (totalSlots * rowH) + footerH + 30;
+  const totalRowH = 48;
+  const bottomMargin = 28;
+  const H = headerBottomY + tableHeaderH + (totalSlots * rowH) + totalRowH + bottomMargin;
 
   const canvas = document.createElement("canvas");
   canvas.width = W;
@@ -1459,7 +1460,7 @@ function buildRegisterReportCanvas(rows, options = {}) {
   }
 
   const totalRowTop = rowsStartY + (totalSlots * rowH);
-  const totalRowBot = totalRowTop + 48;
+  const totalRowBot = totalRowTop + totalRowH;
 
   ctx.strokeStyle = "#1a1a1a";
   ctx.lineWidth = 1.8;
@@ -1471,7 +1472,7 @@ function buildRegisterReportCanvas(rows, options = {}) {
   }
 
   ctx.fillStyle = "#f1f5f9";
-  ctx.fillRect(c0 + 1, totalRowTop + 1, (c5 - c0) - 2, 46);
+  ctx.fillRect(c0 + 1, totalRowTop + 1, (c5 - c0) - 2, totalRowH - 2);
   ctx.strokeStyle = "#1a1a1a";
   ctx.lineWidth = 2;
   ctx.beginPath();
