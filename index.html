@@ -92,8 +92,6 @@
   .recent-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 6px; }
   .recent-head h3 { margin: 0; font-size: 14px; color: #1f497d; }
   .filter-inp { padding: 5px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; width: 145px; }
-  .recent-sub-title { font-size: 12px; font-weight: bold; color: #16365c; background: #f1f5f9; padding: 6px 8px; border-radius: 6px; margin: 10px 0 6px; }
-  .recent-sub-title.do-sub { color: #0369a1; background: #e0f2fe; }
   .item { border-bottom: 1px solid #e2e8f0; padding: 9px 2px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .item:last-child { border-bottom: none; }
   .grp-tag { display: inline-block; background: #e6fffa; color: #0f766e; border: 1px solid #99f6e4; border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: bold; margin-top: 2px; margin-right: 4px; }
@@ -253,8 +251,8 @@
 
     <div class="recent">
       <div class="recent-head">
-        <h3>Recent Entries (Separate Open & D.O.)</h3>
-        <input type="text" id="dataFilterInp" class="filter-inp" placeholder="Search Party / DO / No..." oninput="renderRecent()">
+        <h3 id="recentHeading">Recent Open Entries</h3>
+        <input type="text" id="dataFilterInp" class="filter-inp" placeholder="Search Party / No..." oninput="renderRecent()">
       </div>
       <div id="recentList"><div style="color:#64748b;font-size:12px;">Data load ho raha hai...</div></div>
     </div>
@@ -266,17 +264,17 @@
       <div class="kpi-card kpi-green">
         <small>Today Bales</small>
         <div class="val" id="kpiTodayBales">0</div>
-        <div class="sub" id="kpiTodayCount">0 Entries</div>
+        <div class="sub" id="kpiTodayCount">0</div>
       </div>
       <div class="kpi-card kpi-blue">
         <small>This Month Bales</small>
         <div class="val" id="kpiMonthBales">0</div>
-        <div class="sub" id="kpiMonthCount">0 Entries</div>
+        <div class="sub" id="kpiMonthCount">0</div>
       </div>
       <div class="kpi-card kpi-teal">
         <small>Total Bales (All)</small>
         <div class="val" id="kpiTotalBales">0</div>
-        <div class="sub" id="kpiTotalCount">0 Entries</div>
+        <div class="sub" id="kpiTotalCount">0</div>
       </div>
       <div class="kpi-card kpi-orange">
         <small>DO OK / Pending Bales</small>
@@ -311,7 +309,7 @@
           <option value="ALL">ALL DATES</option>
         </select>
       </div>
-      <div id="dashFilteredSummary" style="font-size:12px;font-weight:bold;color:#1f497d;margin-bottom:8px;">Filtered: 0 Entries • 0 Bales</div>
+      <div id="dashFilteredSummary" style="font-size:12px;font-weight:bold;color:#1f497d;margin-bottom:8px;">Filtered: 0 • 0 Bales</div>
       <div class="dash-btn-row">
         <button type="button" class="btn-rep-photo" onclick="openRegisterReportModal()">🖼️ REPORT PHOTO</button>
         <button type="button" class="btn-wa-sum" onclick="sendDashboardWhatsApp()">💬 WA TEXT REPORT</button>
@@ -552,6 +550,7 @@ function setEntryMode(mode) {
   document.getElementById("than").placeholder = isDo ? "e.g. MH-41-AB-1234" : "e.g. 80";
   document.getElementById("doExtraFields").style.display = isDo ? "block" : "none";
   document.getElementById("saveBtn").textContent = isDo ? "SAVE D.O. & SYNC" : "SAVE PAVATI & SYNC";
+  document.getElementById("recentHeading").textContent = isDo ? "Recent DO Entries" : "Recent Open Entries";
 
   applyNextSerialPno();
   renderRecent();
@@ -899,15 +898,14 @@ async function pullFromCloud(silent = true) {
   }
 }
 
-async function openDoStatusModal(idx) {
-  const r = visibleDoRecords[idx];
-  if (!r) return;
-  activeDoEditItem = r;
-  const split = getDoSplit(r);
+function openDoStatusModalByRecord(target) {
+  if (!target) return;
+  activeDoEditItem = target;
+  const split = getDoSplit(target);
 
-  document.getElementById("doStatusModalTitle").textContent = `DO-${r.p_no || "-"} • ${r.party}`;
+  document.getElementById("doStatusModalTitle").textContent = `DO-${target.p_no || "-"} • ${target.party}`;
   document.getElementById("doStatusInfoText").textContent =
-    `Total DO Bales: ${split.total} | Bales: ${r.bale_no || "-"} | Press: ${r.press_name || "-"}`;
+    `Total DO Bales: ${split.total} | Bales: ${target.bale_no || "-"} | Press: ${target.press_name || "-"}`;
 
   const inp = document.getElementById("doOkBalesInput");
   inp.max = String(split.total);
@@ -915,6 +913,16 @@ async function openDoStatusModal(idx) {
 
   previewDoSplit();
   document.getElementById("doStatusModal").style.display = "flex";
+}
+
+function openDoStatusModal(idx) {
+  const r = visibleDoRecords[idx];
+  openDoStatusModalByRecord(r);
+}
+
+function openRecentDoStatusModal(idx) {
+  const r = recentDoList[idx];
+  openDoStatusModalByRecord(r);
 }
 
 function previewDoSplit() {
@@ -1200,11 +1208,11 @@ function renderDashboard() {
 
   const partyEntries = Object.entries(partyTotals).sort((a, b) => b[1].bales - a[1].bales);
   document.getElementById("kpiTodayBales").textContent = todayBales;
-  document.getElementById("kpiTodayCount").textContent = `${todayCnt} Entries (${today})`;
+  document.getElementById("kpiTodayCount").textContent = `${todayCnt} (${today})`;
   document.getElementById("kpiMonthBales").textContent = monthBales;
-  document.getElementById("kpiMonthCount").textContent = `${monthCnt} Entries`;
+  document.getElementById("kpiMonthCount").textContent = `${monthCnt}`;
   document.getElementById("kpiTotalBales").textContent = totalBales;
-  document.getElementById("kpiTotalCount").textContent = `${totalCnt} Entries`;
+  document.getElementById("kpiTotalCount").textContent = `${totalCnt}`;
   document.getElementById("kpiReportStatus").textContent = `${doOkBales} / ${doPendBales}`;
   document.getElementById("kpiTopParty").textContent = partyEntries.length
     ? `Top: ${partyEntries[0][0]} (${partyEntries[0][1].bales})`
@@ -1233,7 +1241,7 @@ function renderDashboard() {
 
   const fBales = dashFilteredRows.reduce((s, r) => s + (parseInt(r.bales, 10) || 0), 0);
   document.getElementById("dashFilteredSummary").textContent =
-    `Filtered Result: ${dashFilteredRows.length} Entries • ${fBales} Total Bales`;
+    `Filtered Result: ${dashFilteredRows.length} • ${fBales} Total Bales`;
 
   const pBox = document.getElementById("dashPartyList");
   if (!partyEntries.length) {
@@ -1250,7 +1258,7 @@ function renderDashboard() {
           </div>
           <div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div>
           <div class="party-meta">
-            <span>${info.count} Entries</span>
+            <span>${info.count}</span>
             <span>Last: ${escapeHtml(info.lastDate || "-")}</span>
           </div>
         </div>
@@ -1265,14 +1273,14 @@ function renderDashboard() {
   } else {
     dBox.innerHTML = dateEntries.map(([dt, info]) => `
       <div class="item">
-        <div><b>${escapeHtml(dt)}</b><br><small style="color:#64748b;">${info.count} Entries</small></div>
+        <div><b>${escapeHtml(dt)}</b><br><small style="color:#64748b;">${info.count}</small></div>
         <div style="font-weight:bold;color:#16a34a;font-size:14px;">${info.bales} Bales</div>
       </div>
     `).join("");
   }
 }
 
-/* --- REGISTER LEDGER REPORT PHOTO --- */
+/* --- REGISTER LEDGER REPORT PHOTO (NO "ENTRIES" WORD IN TOTAL) --- */
 function getMonthLabelFromRows(rows) {
   const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   for (const r of rows) {
@@ -1468,9 +1476,9 @@ function buildRegisterReportCanvas(rows, options = {}) {
   ctx.stroke();
 
   ctx.fillStyle = "#111111";
-  ctx.font = "bold 18px Arial";
+  ctx.font = "bold 19px Arial";
   ctx.textAlign = "right";
-  ctx.fillText(`TOTAL (${orderedRows.length} Entries) :`, c3 - 12, totalRowTop + 31);
+  ctx.fillText(`TOTAL (${orderedRows.length}) :`, c3 - 12, totalRowTop + 31);
 
   ctx.textAlign = "center";
   ctx.fillStyle = "#b91c1c";
@@ -1573,7 +1581,7 @@ function sendDoReportWhatsApp() {
     lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | Bales:${r.bale_no} | Press:${r.press_name || "-"} | Total:${sp.total} | *${formatDoPhotoStatusLabel(sp)}*`);
   }
   lines.push("--------------------------------");
-  lines.push(`*TOTAL BALES:* *${totalB}* | *OK:* *${okB}* | *PENDING:* *${pendB}*`);
+  lines.push(`*TOTAL (${doRows.length}):* *${totalB} Bales* | *OK:* *${okB}* | *PENDING:* *${pendB}*`);
 
   const msg = lines.join("\n");
   copyTextSafe(msg);
@@ -1605,8 +1613,7 @@ function sendDashboardWhatsApp() {
     }
   }
   lines.push("--------------------------------");
-  lines.push(`*TOTAL ENTRIES:* ${dashFilteredRows.length}`);
-  lines.push(`*TOTAL BALES:* *${totalB}*`);
+  lines.push(`*TOTAL (${dashFilteredRows.length}):* *${totalB} Bales*`);
 
   const msg = lines.join("\n");
   copyTextSafe(msg);
@@ -1773,11 +1780,12 @@ function prependStoredRecord(item) {
   renderDoReportTab();
 }
 
-/* --- SEPARATE OPEN PAVATI & D.O. IN RECENT ENTRIES (NO MIXING) --- */
+/* --- SHOW ONLY OPEN ENTRIES IN OPEN MODE, AND ONLY DO ENTRIES IN DO MODE --- */
 function renderRecent() {
   const all = getStoredRecords();
   const grpMap = getPartyGroupMap();
   const q = (document.getElementById("dataFilterInp").value || "").trim().toLowerCase();
+  const isDoMode = entryMode === "DO";
 
   const matchesFilter = (r) => {
     if (!q) return true;
@@ -1786,23 +1794,38 @@ function renderRecent() {
       .includes(q);
   };
 
-  recentOpenList = all.filter(r => !isDoRecord(r) && matchesFilter(r)).slice(0, 15);
-  recentDoList = all.filter(r => isDoRecord(r) && matchesFilter(r)).slice(0, 15);
+  recentOpenList = all.filter(r => !isDoRecord(r) && matchesFilter(r)).slice(0, 25);
+  recentDoList = all.filter(r => isDoRecord(r) && matchesFilter(r)).slice(0, 25);
 
   const box = document.getElementById("recentList");
-  if (!recentOpenList.length && !recentDoList.length) {
-    box.innerHTML = `<div style="color:#64748b;font-size:12px;">Koi entry nahi mili. 🔄 SYNC dabayein.</div>`;
-    return;
-  }
 
-  let html = "";
-
-  // Section 1: Open Bale Pavati Only
-  html += `<div class="recent-sub-title">OPEN BALE PAVATI (${recentOpenList.length})</div>`;
-  if (!recentOpenList.length) {
-    html += `<div style="color:#64748b;font-size:12px;padding:4px 2px;">Koi Open Pavati entry nahi hai.</div>`;
+  if (isDoMode) {
+    if (!recentDoList.length) {
+      box.innerHTML = `<div style="color:#64748b;font-size:12px;">Koi DO entry nahi mili. 🔄 SYNC dabayein.</div>`;
+      return;
+    }
+    box.innerHTML = recentDoList.map((r, idx) => {
+      const sp = getDoSplit(r);
+      const btnCls = sp.status === "OK" ? "st-toggle-ok" : (sp.status === "PARTIAL" ? "st-toggle-part" : "st-toggle-pend");
+      return `
+        <div class="item">
+          <div>
+            <b>DO-${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})<br>
+            <small style="color:#64748b;">${escapeHtml(r.v_date)} • Total: <b>${sp.total}</b> • OK: <b style="color:#15803d;">${sp.ok}</b> • Pending: <b style="color:#b45309;">${sp.pending}</b></small><br>
+            <span class="do-tag">Press: ${escapeHtml(r.press_name || "-")}${r.than ? " • Tempo: " + escapeHtml(r.than) : ""}</span>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <button type="button" class="${btnCls}" onclick="openRecentDoStatusModal(${idx})">${escapeHtml(formatDoPhotoStatusLabel(sp))}</button>
+          </div>
+        </div>
+      `;
+    }).join("");
   } else {
-    html += recentOpenList.map((r, idx) => {
+    if (!recentOpenList.length) {
+      box.innerHTML = `<div style="color:#64748b;font-size:12px;">Koi Open entry nahi mili. 🔄 SYNC dabayein.</div>`;
+      return;
+    }
+    box.innerHTML = recentOpenList.map((r, idx) => {
       const grp = grpMap[r.party] || "";
       const grpBadge = grp
         ? `<span class="grp-tag">WA Group: ${escapeHtml(grp)}</span>`
@@ -1823,30 +1846,6 @@ function renderRecent() {
       `;
     }).join("");
   }
-
-  // Section 2: D.O. Entry Only (Separate from Open Pavati, No Slip)
-  html += `<div class="recent-sub-title do-sub">D.O. ENTRY (${recentDoList.length})</div>`;
-  if (!recentDoList.length) {
-    html += `<div style="color:#64748b;font-size:12px;padding:4px 2px;">Koi D.O. entry nahi hai.</div>`;
-  } else {
-    html += recentDoList.map((r) => {
-      const sp = getDoSplit(r);
-      return `
-        <div class="item">
-          <div>
-            <b>DO-${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})<br>
-            <small style="color:#64748b;">${escapeHtml(r.v_date)} • Total: <b>${sp.total}</b> • OK: <b style="color:#15803d;">${sp.ok}</b> • Pending: <b style="color:#b45309;">${sp.pending}</b></small><br>
-            <span class="do-tag">Press: ${escapeHtml(r.press_name || "-")}${r.than ? " • Tempo: " + escapeHtml(r.than) : ""}</span>
-          </div>
-          <div style="text-align:right;flex-shrink:0;">
-            <span style="font-size:11px;font-weight:bold;color:#0369a1;">${escapeHtml(formatDoPhotoStatusLabel(sp))}</span>
-          </div>
-        </div>
-      `;
-    }).join("");
-  }
-
-  box.innerHTML = html;
 }
 
 function buildSlipCanvas(r) {
