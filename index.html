@@ -252,7 +252,7 @@
     <div class="recent">
       <div class="recent-head">
         <h3 id="recentHeading">Recent Open Entries</h3>
-        <input type="text" id="dataFilterInp" class="filter-inp" placeholder="Search Party / No..." oninput="renderRecent()">
+        <input type="text" id="dataFilterInp" class="filter-inp" placeholder="Search Party / Token / No..." oninput="renderRecent()">
       </div>
       <div id="recentList"><div style="color:#64748b;font-size:12px;">Data load ho raha hai...</div></div>
     </div>
@@ -367,7 +367,7 @@
         </select>
       </div>
       <div class="dash-filters">
-        <input type="text" id="doSearchInp" placeholder="Search DO / Party / Press..." oninput="renderDoReportTab()" style="grid-column: 1 / -1;">
+        <input type="text" id="doSearchInp" placeholder="Search DO / Party / Token Name / Press..." oninput="renderDoReportTab()" style="grid-column: 1 / -1;">
       </div>
       <div id="doTabSummary" style="font-size:12px;font-weight:bold;color:#1f497d;margin-bottom:8px;">Showing: 0 DO • Total: 0 • OK: 0 • Pending: 0</div>
       <div class="dash-btn-row">
@@ -386,7 +386,7 @@
 
     <div class="dash-box">
       <div class="dash-box-head">
-        <h3>DO Entries (Tap to Set OK / Pending Bales)</h3>
+        <h3>DO Entries (Tap to Set Token Name & OK / Pending Bales)</h3>
         <small style="color:#64748b;font-weight:bold;">Partial Allowed</small>
       </div>
       <div id="doReportList"><div style="color:#64748b;font-size:12px;">Koi DO entry nahi hai.</div></div>
@@ -394,7 +394,7 @@
   </div>
 </div>
 
-<!-- PARTIAL / OK / PENDING DO BALES MODAL -->
+<!-- PARTIAL / OK / PENDING / TOKEN NAME DO MODAL -->
 <div class="modal-backdrop" id="doStatusModal" onclick="backdropClose(event, 'doStatusModal')">
   <div class="modal-card">
     <div class="modal-head">
@@ -403,6 +403,8 @@
     </div>
     <div id="doStatusInfoText" style="font-size:13px;font-weight:bold;color:#1f497d;margin-bottom:10px;"></div>
     <div class="slip-cfg-box">
+      <label>Token Name (Optional):</label>
+      <input type="text" id="doTokenNameInput" placeholder="e.g. Ramesh / Party Token Name">
       <label>Kitni Bales OK ho gayi hain? (0 se Total Bales ke beech):</label>
       <input type="number" id="doOkBalesInput" min="0" inputmode="numeric" oninput="previewDoSplit()">
       <div id="doSplitPreview" style="font-size:12px;font-weight:bold;color:#0f172a;margin-top:4px;"></div>
@@ -492,6 +494,7 @@ const STORAGE_MASTER_KEY = "ht_master_cache";
 const STORAGE_DATA_KEY = "ht_cloud_records";
 const STORAGE_PARTY_GRP_KEY = "ht_party_wa_groups";
 const STORAGE_PRESS_KEY = "ht_press_master";
+const STORAGE_TOKEN_NAME_KEY = "ht_token_name_master";
 
 let entryMode = "PAVATI";
 let popupType = "";
@@ -516,6 +519,13 @@ let deferredInstallPrompt = null;
 
 function isDoRecord(r) {
   return Boolean(r) && String(r.entry_type || "PAVATI").toUpperCase() === "DO";
+}
+
+function formatDoTokenDisplay(r) {
+  const tok = String((r && r.token) || "").trim();
+  const tName = String((r && r.token_name) || "").trim();
+  if (tok && tName) return `${tok} (${tName})`;
+  return tok || tName || "-";
 }
 
 function getDoSplit(r) {
@@ -726,6 +736,25 @@ function rememberPressName(pressName) {
   }
 }
 
+function getTokenNameList() {
+  try {
+    const arr = JSON.parse(localStorage.getItem(STORAGE_TOKEN_NAME_KEY) || "[]");
+    return cleanStrList(arr);
+  } catch (e) {
+    return [];
+  }
+}
+
+function rememberTokenName(tokenName) {
+  const t = String(tokenName || "").trim();
+  if (!t) return;
+  const list = getTokenNameList();
+  if (!list.includes(t)) {
+    list.push(t);
+    localStorage.setItem(STORAGE_TOKEN_NAME_KEY, JSON.stringify(list));
+  }
+}
+
 function cleanStrList(arr) {
   if (!Array.isArray(arr)) return [];
   const out = [];
@@ -789,7 +818,7 @@ function mergeMasterToCache(masterObj) {
   localStorage.setItem(STORAGE_MASTER_KEY, JSON.stringify(cache));
 }
 
-function rememberMaster(party, token, quality, pressName) {
+function rememberMaster(party, token, quality, pressName, tokenName) {
   const cache = getMasterCache();
   const p = String(party || "").trim();
   const t = String(token || "").trim();
@@ -799,6 +828,7 @@ function rememberMaster(party, token, quality, pressName) {
   if (q && !cache.qualities.includes(q)) cache.qualities.push(q);
   localStorage.setItem(STORAGE_MASTER_KEY, JSON.stringify(cache));
   if (pressName) rememberPressName(pressName);
+  if (tokenName) rememberTokenName(tokenName);
 }
 
 function getStoredRecords() {
@@ -813,7 +843,9 @@ function getStoredRecords() {
 function saveStoredRecords(recs) {
   const list = Array.isArray(recs) ? recs : [];
   list.forEach(r => {
-    if (r && r.press_name) rememberPressName(r.press_name);
+    if (!r) return;
+    if (r.press_name) rememberPressName(r.press_name);
+    if (r.token_name) rememberTokenName(r.token_name);
   });
   localStorage.setItem(STORAGE_DATA_KEY, JSON.stringify(list));
 }
@@ -905,8 +937,9 @@ function openDoStatusModalByRecord(target) {
 
   document.getElementById("doStatusModalTitle").textContent = `DO-${target.p_no || "-"} • ${target.party}`;
   document.getElementById("doStatusInfoText").textContent =
-    `Total DO Bales: ${split.total} | Bales: ${target.bale_no || "-"} | Press: ${target.press_name || "-"}`;
+    `Total DO Bales: ${split.total} | Token No: ${target.token || "-"} | Press: ${target.press_name || "-"}`;
 
+  document.getElementById("doTokenNameInput").value = String(target.token_name || "");
   const inp = document.getElementById("doOkBalesInput");
   inp.max = String(split.total);
   inp.value = String(split.ok);
@@ -954,6 +987,9 @@ function setAllDoPending() {
 async function saveDoSplitStatus() {
   if (!activeDoEditItem) return;
   const total = Math.max(0, parseInt(activeDoEditItem.bales, 10) || 0);
+  const tName = document.getElementById("doTokenNameInput").value.trim();
+  if (tName) rememberTokenName(tName);
+
   let ok = parseInt(document.getElementById("doOkBalesInput").value, 10);
   if (isNaN(ok) || ok < 0) ok = 0;
   if (ok > total) ok = total;
@@ -969,6 +1005,7 @@ async function saveDoSplitStatus() {
       String(r.p_no || "") === String(activeDoEditItem.p_no || "") &&
       String(r.party || "") === String(activeDoEditItem.party || "");
     if (sameId || sameDoc) {
+      r.token_name = tName;
       r.ok_bales = ok;
       r.pending_bales = pending;
       r.report_status = nextSt;
@@ -990,6 +1027,7 @@ async function saveDoSplitStatus() {
         body: JSON.stringify({
           action: "update_status",
           sync_id: activeDoEditItem.sync_id,
+          token_name: tName,
           ok_bales: ok,
           pending_bales: pending,
           report_status: nextSt
@@ -1034,7 +1072,7 @@ function getFilteredDoRows() {
     if (stFilter === "OK" && sp.status !== "OK") return false;
     if (pressFilter !== "ALL" && pr !== pressFilter) return false;
     if (q) {
-      const hay = `${r.v_date} ${r.p_no} ${r.party} ${r.token} ${r.quality} ${r.bale_no} ${r.than || ""} ${pr} ${sp.status}`.toLowerCase();
+      const hay = `${r.v_date} ${r.p_no} ${r.party} ${r.token} ${r.token_name || ""} ${r.quality} ${r.bale_no} ${r.than || ""} ${pr} ${sp.status}`.toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
@@ -1121,7 +1159,7 @@ function renderDoReportTab() {
       <div class="item">
         <div>
           <b>DO-${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})${prioTag}<br>
-          <small style="color:#64748b;">${escapeHtml(r.v_date)} • Total: <b>${sp.total}</b> • OK: <b style="color:#15803d;">${sp.ok}</b> • Pending: <b style="color:#b45309;">${sp.pending}</b></small><br>
+          <small style="color:#64748b;">${escapeHtml(r.v_date)} • Token: <b>${escapeHtml(formatDoTokenDisplay(r))}</b> • Total: <b>${sp.total}</b> • OK: <b style="color:#15803d;">${sp.ok}</b> • Pending: <b style="color:#b45309;">${sp.pending}</b></small><br>
           <small style="color:#1f497d;font-weight:bold;">Press: ${escapeHtml(r.press_name || "-")}${r.than ? " • Tempo: " + escapeHtml(r.than) : ""}</small>
         </div>
         <div style="text-align:right;flex-shrink:0;">
@@ -1280,7 +1318,6 @@ function renderDashboard() {
   }
 }
 
-/* --- REGISTER LEDGER REPORT PHOTO (NO "ENTRIES" WORD IN TOTAL) --- */
 function getMonthLabelFromRows(rows) {
   const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   for (const r of rows) {
@@ -1363,11 +1400,11 @@ function buildRegisterReportCanvas(rows, options = {}) {
   ctx.fillText(monthVal, 125, 186);
 
   const c0 = M;
-  const c1 = 152;
-  const c2 = 250;
-  const c3 = isDoReport ? 510 : 655;
-  const c4 = isDoReport ? 590 : 762;
-  const c4b = 735;
+  const c1 = 148;
+  const c2 = isDoReport ? 305 : 250;
+  const c3 = isDoReport ? 515 : 655;
+  const c4 = isDoReport ? 592 : 762;
+  const c4b = 738;
   const c5 = W - M;
 
   ctx.fillStyle = "#1f2428";
@@ -1377,7 +1414,7 @@ function buildRegisterReportCanvas(rows, options = {}) {
   ctx.font = "bold 18px Arial";
   ctx.textAlign = "center";
   ctx.fillText("Date", (c0 + c1) / 2, headerBottomY + 31);
-  ctx.fillText("Token", (c1 + c2) / 2, headerBottomY + 31);
+  ctx.fillText(isDoReport ? "Token / Name" : "Token", (c1 + c2) / 2, headerBottomY + 31);
   ctx.fillText("Bale No.", (c2 + c3) / 2, headerBottomY + 31);
   ctx.fillText("Qty.", (c3 + c4) / 2, headerBottomY + 31);
 
@@ -1422,16 +1459,17 @@ function buildRegisterReportCanvas(rows, options = {}) {
       const isDo = isDoRecord(r);
 
       ctx.fillStyle = "#111827";
-      ctx.font = "bold 16px Arial";
+      ctx.font = "bold 15px Arial";
       ctx.textAlign = "center";
       ctx.fillText(String(r.v_date || ""), (c0 + c1) / 2, yText);
-      ctx.fillText(String(r.token || ""), (c1 + c2) / 2, yText);
+      const tokCell = isDo ? formatDoTokenDisplay(r) : String(r.token || "");
+      ctx.fillText(tokCell.slice(0, isDo ? 18 : 12), (c1 + c2) / 2, yText);
 
       ctx.textAlign = "left";
       const detailText = isDoReport
         ? `${r.party || ""} • ${r.bale_no || ""}`
         : (partyVal === "ALL PARTIES" ? `${r.party || ""} • ${r.bale_no || ""}` : String(r.bale_no || ""));
-      ctx.fillText(detailText.slice(0, isDoReport ? 27 : 38), c2 + 10, yText);
+      ctx.fillText(detailText.slice(0, isDoReport ? 23 : 38), c2 + 10, yText);
 
       ctx.textAlign = "center";
       ctx.fillStyle = "#1a237e";
@@ -1578,7 +1616,7 @@ function sendDoReportWhatsApp() {
     totalB += sp.total;
     okB += sp.ok;
     pendB += sp.pending;
-    lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | Bales:${r.bale_no} | Press:${r.press_name || "-"} | Total:${sp.total} | *${formatDoPhotoStatusLabel(sp)}*`);
+    lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | Token:${formatDoTokenDisplay(r)} | Bales:${r.bale_no} | Press:${r.press_name || "-"} | Total:${sp.total} | *${formatDoPhotoStatusLabel(sp)}*`);
   }
   lines.push("--------------------------------");
   lines.push(`*TOTAL (${doRows.length}):* *${totalB} Bales* | *OK:* *${okB}* | *PENDING:* *${pendB}*`);
@@ -1606,7 +1644,7 @@ function sendDashboardWhatsApp() {
   for (const r of dashFilteredRows) {
     if (isDoRecord(r)) {
       const sp = getDoSplit(r);
-      lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | ${r.bale_no} | Press:${r.press_name || "-"} | *${formatDoPhotoStatusLabel(sp)}* | *${sp.total} Bales*`);
+      lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | Token:${formatDoTokenDisplay(r)} | ${r.bale_no} | Press:${r.press_name || "-"} | *${formatDoPhotoStatusLabel(sp)}* | *${sp.total} Bales*`);
     } else {
       const q = r.quality ? ` | Q:${r.quality}` : "";
       lines.push(`${r.v_date} | #${r.p_no || "-"} | ${r.party} | ${r.bale_no}${q} | *${r.bales} Bales*`);
@@ -1780,7 +1818,6 @@ function prependStoredRecord(item) {
   renderDoReportTab();
 }
 
-/* --- SHOW ONLY OPEN ENTRIES IN OPEN MODE, AND ONLY DO ENTRIES IN DO MODE --- */
 function renderRecent() {
   const all = getStoredRecords();
   const grpMap = getPartyGroupMap();
@@ -1789,7 +1826,7 @@ function renderRecent() {
 
   const matchesFilter = (r) => {
     if (!q) return true;
-    return `${r.v_date} ${r.party} ${r.p_no} ${r.token} ${r.quality} ${r.bale_no} ${r.press_name || ""} ${r.report_status || ""} ${r.entry_type || ""}`
+    return `${r.v_date} ${r.party} ${r.p_no} ${r.token} ${r.token_name || ""} ${r.quality} ${r.bale_no} ${r.press_name || ""} ${r.report_status || ""} ${r.entry_type || ""}`
       .toLowerCase()
       .includes(q);
   };
@@ -1807,11 +1844,13 @@ function renderRecent() {
     box.innerHTML = recentDoList.map((r, idx) => {
       const sp = getDoSplit(r);
       const btnCls = sp.status === "OK" ? "st-toggle-ok" : (sp.status === "PARTIAL" ? "st-toggle-part" : "st-toggle-pend");
+      const tNameText = r.token_name ? ` • Token Name: <b>${escapeHtml(r.token_name)}</b>` : " • Token Name: -";
       return `
         <div class="item">
           <div>
             <b>DO-${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})<br>
-            <small style="color:#64748b;">${escapeHtml(r.v_date)} • Total: <b>${sp.total}</b> • OK: <b style="color:#15803d;">${sp.ok}</b> • Pending: <b style="color:#b45309;">${sp.pending}</b></small><br>
+            <small style="color:#64748b;">${escapeHtml(r.v_date)} • Token: <b>${escapeHtml(r.token || "-")}</b>${tNameText}</small><br>
+            <small style="color:#64748b;">Total: <b>${sp.total}</b> • OK: <b style="color:#15803d;">${sp.ok}</b> • Pending: <b style="color:#b45309;">${sp.pending}</b></small><br>
             <span class="do-tag">Press: ${escapeHtml(r.press_name || "-")}${r.than ? " • Tempo: " + escapeHtml(r.than) : ""}</span>
           </div>
           <div style="text-align:right;flex-shrink:0;">
@@ -2119,6 +2158,7 @@ async function submitEntry() {
     party: document.getElementById("party").value.trim(),
     p_no: pnoVal,
     token: document.getElementById("token").value.trim(),
+    token_name: "",
     quality: document.getElementById("quality").value.trim(),
     bales: totalBalesVal,
     bale_no: document.getElementById("bale_no").value.trim(),
@@ -2165,7 +2205,7 @@ async function submitEntry() {
     });
     const json = await res.json();
     if (json.status === "ok") {
-      rememberMaster(payload.party, payload.token, payload.quality, payload.press_name);
+      rememberMaster(payload.party, payload.token, payload.quality, payload.press_name, payload.token_name);
       prependStoredRecord(payload);
       setStatus(`Saved! ${docLabel} ${payload.p_no} sync ho gaya.`, "#d4edda");
       clearForm();
