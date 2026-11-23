@@ -60,6 +60,10 @@
   .dash-box-head h3 { margin: 0; font-size: 14px; color: #1f497d; }
   .dash-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
   .dash-filters select, .dash-filters input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: bold; background: #f8fafc; color: #111; }
+  .dash-cal-group { display: flex; gap: 4px; align-items: center; }
+  .dash-cal-group input { flex: 1; min-width: 0; padding: 8px 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: bold; text-align: center; background: #f8fafc; color: #111; cursor: pointer; caret-color: transparent; }
+  .dash-cal-btn { background: #1f497d; color: #fff; border: none; border-radius: 6px; padding: 8px 8px; font-size: 12px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
+  .dash-clr-btn { background: #e2e8f0; color: #1e293b; border: none; border-radius: 6px; padding: 8px 7px; font-size: 11px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
   .dash-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .btn-rep-photo { width: 100%; background: #1f497d; color: #fff; border: none; border-radius: 7px; padding: 10px 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
   .btn-wa-sum { width: 100%; background: #25D366; color: #fff; border: none; border-radius: 7px; padding: 10px 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
@@ -176,8 +180,8 @@
         <div class="field">
           <label>Date (Calendar 📅)</label>
           <div class="input-group">
-            <input type="text" id="v_date" readonly class="picker-input" onclick="openCalendarPopup()">
-            <button type="button" class="mini-btn" onclick="openCalendarPopup()">📅</button>
+            <input type="text" id="v_date" readonly class="picker-input" onclick="openCalendarPopup('entry')">
+            <button type="button" class="mini-btn" onclick="openCalendarPopup('entry')">📅</button>
           </div>
         </div>
         <div class="field">
@@ -305,9 +309,11 @@
         <select id="dashPartyFilter" onchange="renderDashboard()">
           <option value="ALL">ALL PARTIES</option>
         </select>
-        <select id="dashDateFilter" onchange="renderDashboard()">
-          <option value="ALL">ALL DATES</option>
-        </select>
+        <div class="dash-cal-group">
+          <input type="text" id="dashDateFilter" readonly placeholder="ALL DATES" onclick="openCalendarPopup('dash')">
+          <button type="button" class="dash-cal-btn" onclick="openCalendarPopup('dash')">📅</button>
+          <button type="button" class="dash-clr-btn" onclick="clearDashDate()">✕</button>
+        </div>
       </div>
       <div id="dashFilteredSummary" style="font-size:12px;font-weight:bold;color:#1f497d;margin-bottom:8px;">Filtered: 0 • 0 Bales</div>
       <div class="dash-btn-row">
@@ -367,7 +373,7 @@
         </select>
       </div>
       <div class="dash-filters">
-        <input type="text" id="doSearchInp" placeholder="Search DO / Party / Token Name / Press..." oninput="renderDoReportTab()" style="grid-column: 1 / -1;">
+        <input type="text" id="doSearchInp" placeholder="Search DO / Party / Press..." oninput="renderDoReportTab()" style="grid-column: 1 / -1;">
       </div>
       <div id="doTabSummary" style="font-size:12px;font-weight:bold;color:#1f497d;margin-bottom:8px;">Showing: 0 DO • Total: 0 • OK: 0 • Pending: 0</div>
       <div class="dash-btn-row">
@@ -386,7 +392,7 @@
 
     <div class="dash-box">
       <div class="dash-box-head">
-        <h3>DO Entries (Tap to Set Token Name & OK / Pending Bales)</h3>
+        <h3>DO Entries (Tap to Set OK / Pending Bales)</h3>
         <small style="color:#64748b;font-weight:bold;">Partial Allowed</small>
       </div>
       <div id="doReportList"><div style="color:#64748b;font-size:12px;">Koi DO entry nahi hai.</div></div>
@@ -394,7 +400,7 @@
   </div>
 </div>
 
-<!-- PARTIAL / OK / PENDING / TOKEN NAME DO MODAL -->
+<!-- PARTIAL / OK / PENDING DO BALES MODAL -->
 <div class="modal-backdrop" id="doStatusModal" onclick="backdropClose(event, 'doStatusModal')">
   <div class="modal-card">
     <div class="modal-head">
@@ -403,8 +409,6 @@
     </div>
     <div id="doStatusInfoText" style="font-size:13px;font-weight:bold;color:#1f497d;margin-bottom:10px;"></div>
     <div class="slip-cfg-box">
-      <label>Token Name (Optional):</label>
-      <input type="text" id="doTokenNameInput" placeholder="e.g. Ramesh / Party Token Name">
       <label>Kitni Bales OK ho gayi hain? (0 se Total Bales ke beech):</label>
       <input type="number" id="doOkBalesInput" min="0" inputmode="numeric" oninput="previewDoSplit()">
       <div id="doSplitPreview" style="font-size:12px;font-weight:bold;color:#0f172a;margin-top:4px;"></div>
@@ -494,9 +498,9 @@ const STORAGE_MASTER_KEY = "ht_master_cache";
 const STORAGE_DATA_KEY = "ht_cloud_records";
 const STORAGE_PARTY_GRP_KEY = "ht_party_wa_groups";
 const STORAGE_PRESS_KEY = "ht_press_master";
-const STORAGE_TOKEN_NAME_KEY = "ht_token_name_master";
 
 let entryMode = "PAVATI";
+let calendarTarget = "entry"; // "entry" or "dash"
 let popupType = "";
 let popupNextField = "";
 let popupFiltered = [];
@@ -519,13 +523,6 @@ let deferredInstallPrompt = null;
 
 function isDoRecord(r) {
   return Boolean(r) && String(r.entry_type || "PAVATI").toUpperCase() === "DO";
-}
-
-function formatDoTokenDisplay(r) {
-  const tok = String((r && r.token) || "").trim();
-  const tName = String((r && r.token_name) || "").trim();
-  if (tok && tName) return `${tok} (${tName})`;
-  return tok || tName || "-";
 }
 
 function getDoSplit(r) {
@@ -736,25 +733,6 @@ function rememberPressName(pressName) {
   }
 }
 
-function getTokenNameList() {
-  try {
-    const arr = JSON.parse(localStorage.getItem(STORAGE_TOKEN_NAME_KEY) || "[]");
-    return cleanStrList(arr);
-  } catch (e) {
-    return [];
-  }
-}
-
-function rememberTokenName(tokenName) {
-  const t = String(tokenName || "").trim();
-  if (!t) return;
-  const list = getTokenNameList();
-  if (!list.includes(t)) {
-    list.push(t);
-    localStorage.setItem(STORAGE_TOKEN_NAME_KEY, JSON.stringify(list));
-  }
-}
-
 function cleanStrList(arr) {
   if (!Array.isArray(arr)) return [];
   const out = [];
@@ -818,7 +796,7 @@ function mergeMasterToCache(masterObj) {
   localStorage.setItem(STORAGE_MASTER_KEY, JSON.stringify(cache));
 }
 
-function rememberMaster(party, token, quality, pressName, tokenName) {
+function rememberMaster(party, token, quality, pressName) {
   const cache = getMasterCache();
   const p = String(party || "").trim();
   const t = String(token || "").trim();
@@ -828,7 +806,6 @@ function rememberMaster(party, token, quality, pressName, tokenName) {
   if (q && !cache.qualities.includes(q)) cache.qualities.push(q);
   localStorage.setItem(STORAGE_MASTER_KEY, JSON.stringify(cache));
   if (pressName) rememberPressName(pressName);
-  if (tokenName) rememberTokenName(tokenName);
 }
 
 function getStoredRecords() {
@@ -843,9 +820,7 @@ function getStoredRecords() {
 function saveStoredRecords(recs) {
   const list = Array.isArray(recs) ? recs : [];
   list.forEach(r => {
-    if (!r) return;
-    if (r.press_name) rememberPressName(r.press_name);
-    if (r.token_name) rememberTokenName(r.token_name);
+    if (r && r.press_name) rememberPressName(r.press_name);
   });
   localStorage.setItem(STORAGE_DATA_KEY, JSON.stringify(list));
 }
@@ -937,9 +912,8 @@ function openDoStatusModalByRecord(target) {
 
   document.getElementById("doStatusModalTitle").textContent = `DO-${target.p_no || "-"} • ${target.party}`;
   document.getElementById("doStatusInfoText").textContent =
-    `Total DO Bales: ${split.total} | Token No: ${target.token || "-"} | Press: ${target.press_name || "-"}`;
+    `Total DO Bales: ${split.total} | Bales: ${target.bale_no || "-"} | Press: ${target.press_name || "-"}`;
 
-  document.getElementById("doTokenNameInput").value = String(target.token_name || "");
   const inp = document.getElementById("doOkBalesInput");
   inp.max = String(split.total);
   inp.value = String(split.ok);
@@ -987,9 +961,6 @@ function setAllDoPending() {
 async function saveDoSplitStatus() {
   if (!activeDoEditItem) return;
   const total = Math.max(0, parseInt(activeDoEditItem.bales, 10) || 0);
-  const tName = document.getElementById("doTokenNameInput").value.trim();
-  if (tName) rememberTokenName(tName);
-
   let ok = parseInt(document.getElementById("doOkBalesInput").value, 10);
   if (isNaN(ok) || ok < 0) ok = 0;
   if (ok > total) ok = total;
@@ -1005,7 +976,6 @@ async function saveDoSplitStatus() {
       String(r.p_no || "") === String(activeDoEditItem.p_no || "") &&
       String(r.party || "") === String(activeDoEditItem.party || "");
     if (sameId || sameDoc) {
-      r.token_name = tName;
       r.ok_bales = ok;
       r.pending_bales = pending;
       r.report_status = nextSt;
@@ -1027,7 +997,6 @@ async function saveDoSplitStatus() {
         body: JSON.stringify({
           action: "update_status",
           sync_id: activeDoEditItem.sync_id,
-          token_name: tName,
           ok_bales: ok,
           pending_bales: pending,
           report_status: nextSt
@@ -1072,7 +1041,7 @@ function getFilteredDoRows() {
     if (stFilter === "OK" && sp.status !== "OK") return false;
     if (pressFilter !== "ALL" && pr !== pressFilter) return false;
     if (q) {
-      const hay = `${r.v_date} ${r.p_no} ${r.party} ${r.token} ${r.token_name || ""} ${r.quality} ${r.bale_no} ${r.than || ""} ${pr} ${sp.status}`.toLowerCase();
+      const hay = `${r.v_date} ${r.p_no} ${r.party} ${r.token} ${r.quality} ${r.bale_no} ${r.than || ""} ${pr} ${sp.status}`.toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
@@ -1159,7 +1128,7 @@ function renderDoReportTab() {
       <div class="item">
         <div>
           <b>DO-${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})${prioTag}<br>
-          <small style="color:#64748b;">${escapeHtml(r.v_date)} • Token: <b>${escapeHtml(formatDoTokenDisplay(r))}</b> • Total: <b>${sp.total}</b> • OK: <b style="color:#15803d;">${sp.ok}</b> • Pending: <b style="color:#b45309;">${sp.pending}</b></small><br>
+          <small style="color:#64748b;">${escapeHtml(r.v_date)} • Total: <b>${sp.total}</b> • OK: <b style="color:#15803d;">${sp.ok}</b> • Pending: <b style="color:#b45309;">${sp.pending}</b></small><br>
           <small style="color:#1f497d;font-weight:bold;">Press: ${escapeHtml(r.press_name || "-")}${r.than ? " • Tempo: " + escapeHtml(r.than) : ""}</small>
         </div>
         <div style="text-align:right;flex-shrink:0;">
@@ -1173,27 +1142,25 @@ function renderDoReportTab() {
 function populateDashDropdowns() {
   const all = getStoredRecords();
   const pSel = document.getElementById("dashPartyFilter");
-  const dSel = document.getElementById("dashDateFilter");
   const curP = pSel.value || "ALL";
-  const curD = dSel.value || "ALL";
 
   const parties = Array.from(new Set(all.map(r => String(r.party || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
-  const dates = Array.from(new Set(all.map(r => String(r.v_date || "").trim()).filter(Boolean)));
 
   pSel.innerHTML = `<option value="ALL">ALL PARTIES (${parties.length})</option>` +
     parties.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join("");
   if (parties.includes(curP)) pSel.value = curP;
+}
 
-  dSel.innerHTML = `<option value="ALL">ALL DATES (${dates.length})</option>` +
-    dates.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join("");
-  if (dates.includes(curD)) dSel.value = curD;
+function clearDashDate() {
+  document.getElementById("dashDateFilter").value = "";
+  renderDashboard();
 }
 
 function resetDashFilters() {
   document.getElementById("dashTypeFilter").value = "ALL";
   document.getElementById("dashStatusFilter").value = "ALL";
   document.getElementById("dashPartyFilter").value = "ALL";
-  document.getElementById("dashDateFilter").value = "ALL";
+  document.getElementById("dashDateFilter").value = "";
   renderDashboard();
 }
 
@@ -1259,7 +1226,7 @@ function renderDashboard() {
   const selType = document.getElementById("dashTypeFilter").value;
   const selSt = document.getElementById("dashStatusFilter").value;
   const selP = document.getElementById("dashPartyFilter").value;
-  const selD = document.getElementById("dashDateFilter").value;
+  const selD = document.getElementById("dashDateFilter").value.trim();
 
   dashFilteredRows = all.filter(r => {
     if (!r) return false;
@@ -1273,13 +1240,13 @@ function renderDashboard() {
       if (selSt === "PENDING" && sp.pending <= 0) return false;
     }
     if (selP !== "ALL" && String(r.party || "").trim() !== selP) return false;
-    if (selD !== "ALL" && String(r.v_date || "").trim() !== selD) return false;
+    if (selD && String(r.v_date || "").trim() !== selD) return false;
     return true;
   });
 
   const fBales = dashFilteredRows.reduce((s, r) => s + (parseInt(r.bales, 10) || 0), 0);
   document.getElementById("dashFilteredSummary").textContent =
-    `Filtered Result: ${dashFilteredRows.length} • ${fBales} Total Bales`;
+    `Filtered Result: ${dashFilteredRows.length} • ${fBales} Total Bales${selD ? " • " + selD : ""}`;
 
   const pBox = document.getElementById("dashPartyList");
   if (!partyEntries.length) {
@@ -1400,11 +1367,11 @@ function buildRegisterReportCanvas(rows, options = {}) {
   ctx.fillText(monthVal, 125, 186);
 
   const c0 = M;
-  const c1 = 148;
-  const c2 = isDoReport ? 305 : 250;
-  const c3 = isDoReport ? 515 : 655;
-  const c4 = isDoReport ? 592 : 762;
-  const c4b = 738;
+  const c1 = 152;
+  const c2 = 250;
+  const c3 = isDoReport ? 510 : 655;
+  const c4 = isDoReport ? 590 : 762;
+  const c4b = 735;
   const c5 = W - M;
 
   ctx.fillStyle = "#1f2428";
@@ -1414,7 +1381,7 @@ function buildRegisterReportCanvas(rows, options = {}) {
   ctx.font = "bold 18px Arial";
   ctx.textAlign = "center";
   ctx.fillText("Date", (c0 + c1) / 2, headerBottomY + 31);
-  ctx.fillText(isDoReport ? "Token / Name" : "Token", (c1 + c2) / 2, headerBottomY + 31);
+  ctx.fillText("Token", (c1 + c2) / 2, headerBottomY + 31);
   ctx.fillText("Bale No.", (c2 + c3) / 2, headerBottomY + 31);
   ctx.fillText("Qty.", (c3 + c4) / 2, headerBottomY + 31);
 
@@ -1459,17 +1426,16 @@ function buildRegisterReportCanvas(rows, options = {}) {
       const isDo = isDoRecord(r);
 
       ctx.fillStyle = "#111827";
-      ctx.font = "bold 15px Arial";
+      ctx.font = "bold 16px Arial";
       ctx.textAlign = "center";
       ctx.fillText(String(r.v_date || ""), (c0 + c1) / 2, yText);
-      const tokCell = isDo ? formatDoTokenDisplay(r) : String(r.token || "");
-      ctx.fillText(tokCell.slice(0, isDo ? 18 : 12), (c1 + c2) / 2, yText);
+      ctx.fillText(String(r.token || ""), (c1 + c2) / 2, yText);
 
       ctx.textAlign = "left";
       const detailText = isDoReport
         ? `${r.party || ""} • ${r.bale_no || ""}`
         : (partyVal === "ALL PARTIES" ? `${r.party || ""} • ${r.bale_no || ""}` : String(r.bale_no || ""));
-      ctx.fillText(detailText.slice(0, isDoReport ? 23 : 38), c2 + 10, yText);
+      ctx.fillText(detailText.slice(0, isDoReport ? 27 : 38), c2 + 10, yText);
 
       ctx.textAlign = "center";
       ctx.fillStyle = "#1a237e";
@@ -1616,7 +1582,7 @@ function sendDoReportWhatsApp() {
     totalB += sp.total;
     okB += sp.ok;
     pendB += sp.pending;
-    lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | Token:${formatDoTokenDisplay(r)} | Bales:${r.bale_no} | Press:${r.press_name || "-"} | Total:${sp.total} | *${formatDoPhotoStatusLabel(sp)}*`);
+    lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | Bales:${r.bale_no} | Press:${r.press_name || "-"} | Total:${sp.total} | *${formatDoPhotoStatusLabel(sp)}*`);
   }
   lines.push("--------------------------------");
   lines.push(`*TOTAL (${doRows.length}):* *${totalB} Bales* | *OK:* *${okB}* | *PENDING:* *${pendB}*`);
@@ -1632,7 +1598,7 @@ function sendDashboardWhatsApp() {
     return;
   }
   const selP = document.getElementById("dashPartyFilter").value;
-  const selD = document.getElementById("dashDateFilter").value;
+  const selD = document.getElementById("dashDateFilter").value.trim() || "ALL DATES";
   const totalB = dashFilteredRows.reduce((s, r) => s + (parseInt(r.bales, 10) || 0), 0);
 
   const lines = [
@@ -1644,7 +1610,7 @@ function sendDashboardWhatsApp() {
   for (const r of dashFilteredRows) {
     if (isDoRecord(r)) {
       const sp = getDoSplit(r);
-      lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | Token:${formatDoTokenDisplay(r)} | ${r.bale_no} | Press:${r.press_name || "-"} | *${formatDoPhotoStatusLabel(sp)}* | *${sp.total} Bales*`);
+      lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | ${r.bale_no} | Press:${r.press_name || "-"} | *${formatDoPhotoStatusLabel(sp)}* | *${sp.total} Bales*`);
     } else {
       const q = r.quality ? ` | Q:${r.quality}` : "";
       lines.push(`${r.v_date} | #${r.p_no || "-"} | ${r.party} | ${r.bale_no}${q} | *${r.bales} Bales*`);
@@ -1749,11 +1715,13 @@ function pickPopupValue(val) {
   }
 }
 
-function openCalendarPopup() {
+function openCalendarPopup(target = "entry") {
+  calendarTarget = target;
   if (document.activeElement && document.activeElement.blur) {
     document.activeElement.blur();
   }
-  const cur = document.getElementById("v_date").value.trim();
+  const srcId = target === "dash" ? "dashDateFilter" : "v_date";
+  const cur = document.getElementById(srcId).value.trim() || todayStr();
   const parts = cur.split("/");
   if (parts.length === 3) {
     const m = parseInt(parts[1], 10) - 1;
@@ -1799,8 +1767,14 @@ function renderCalendar() {
 }
 
 function selectCalDate(val) {
-  document.getElementById("v_date").value = val;
-  closeModal("calendarModal");
+  if (calendarTarget === "dash") {
+    document.getElementById("dashDateFilter").value = val;
+    closeModal("calendarModal");
+    renderDashboard();
+  } else {
+    document.getElementById("v_date").value = val;
+    closeModal("calendarModal");
+  }
 }
 
 function pickTodayDate() {
@@ -1826,7 +1800,7 @@ function renderRecent() {
 
   const matchesFilter = (r) => {
     if (!q) return true;
-    return `${r.v_date} ${r.party} ${r.p_no} ${r.token} ${r.token_name || ""} ${r.quality} ${r.bale_no} ${r.press_name || ""} ${r.report_status || ""} ${r.entry_type || ""}`
+    return `${r.v_date} ${r.party} ${r.p_no} ${r.token} ${r.quality} ${r.bale_no} ${r.press_name || ""} ${r.report_status || ""} ${r.entry_type || ""}`
       .toLowerCase()
       .includes(q);
   };
@@ -1844,13 +1818,11 @@ function renderRecent() {
     box.innerHTML = recentDoList.map((r, idx) => {
       const sp = getDoSplit(r);
       const btnCls = sp.status === "OK" ? "st-toggle-ok" : (sp.status === "PARTIAL" ? "st-toggle-part" : "st-toggle-pend");
-      const tNameText = r.token_name ? ` • Token Name: <b>${escapeHtml(r.token_name)}</b>` : " • Token Name: -";
       return `
         <div class="item">
           <div>
             <b>DO-${escapeHtml(r.p_no || "-")}</b> ${escapeHtml(r.party)} (${escapeHtml(r.bale_no)})<br>
-            <small style="color:#64748b;">${escapeHtml(r.v_date)} • Token: <b>${escapeHtml(r.token || "-")}</b>${tNameText}</small><br>
-            <small style="color:#64748b;">Total: <b>${sp.total}</b> • OK: <b style="color:#15803d;">${sp.ok}</b> • Pending: <b style="color:#b45309;">${sp.pending}</b></small><br>
+            <small style="color:#64748b;">${escapeHtml(r.v_date)} • Token: <b>${escapeHtml(r.token || "-")}</b> • Total: <b>${sp.total}</b> • OK: <b style="color:#15803d;">${sp.ok}</b> • Pending: <b style="color:#b45309;">${sp.pending}</b></small><br>
             <span class="do-tag">Press: ${escapeHtml(r.press_name || "-")}${r.than ? " • Tempo: " + escapeHtml(r.than) : ""}</span>
           </div>
           <div style="text-align:right;flex-shrink:0;">
@@ -2158,7 +2130,6 @@ async function submitEntry() {
     party: document.getElementById("party").value.trim(),
     p_no: pnoVal,
     token: document.getElementById("token").value.trim(),
-    token_name: "",
     quality: document.getElementById("quality").value.trim(),
     bales: totalBalesVal,
     bale_no: document.getElementById("bale_no").value.trim(),
@@ -2205,7 +2176,7 @@ async function submitEntry() {
     });
     const json = await res.json();
     if (json.status === "ok") {
-      rememberMaster(payload.party, payload.token, payload.quality, payload.press_name, payload.token_name);
+      rememberMaster(payload.party, payload.token, payload.quality, payload.press_name);
       prependStoredRecord(payload);
       setStatus(`Saved! ${docLabel} ${payload.p_no} sync ho gaya.`, "#d4edda");
       clearForm();
