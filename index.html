@@ -145,9 +145,9 @@
     <small id="syncMeta">PAVATI & D.O. ENTRY • MALEGAON</small>
   </div>
   <div class="hdr-btns">
-    <button type="button" class="install-btn" id="hdrInstallBtn" onclick="triggerInstallApp()">📲 INSTALL</button>
-    <button type="button" class="sync-btn" onclick="pullFromCloud(false)">🔄 SYNC</button>
-    <button type="button" class="gear-btn" onclick="toggleSettings()">⚙️ URL</button>
+    <button class="install-btn" id="hdrInstallBtn" onclick="triggerInstallApp()">📲 INSTALL</button>
+    <button class="sync-btn" onclick="pullFromCloud(false)">🔄 SYNC</button>
+    <button class="gear-btn" onclick="toggleSettings()">⚙️ URL</button>
   </div>
 </div>
 
@@ -166,7 +166,7 @@
   <div class="settings-box" id="settingsBox">
     <label style="font-size:12px;font-weight:bold;">Google Apps Script Web App URL:</label>
     <input type="text" id="apiUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
-    <button type="button" class="btn-url" onclick="saveApiUrl()">Save URL</button>
+    <button class="btn-url" onclick="saveApiUrl()">Save URL</button>
   </div>
 
   <!-- TAB 1: ENTRY VIEW -->
@@ -231,11 +231,14 @@
       <div class="row-2">
         <div class="field">
           <label>Bale No (Auto / Manual)</label>
-          <input type="text" id="bale_no" class="preview-box" placeholder="e.g. 1 to 5" onkeydown="handleEnter(event, 'than')">
+          <input type="text" id="bale_no" class="preview-box" placeholder="e.g. 1 to 5" onkeydown="handleThanOrTempoNext(event)">
         </div>
         <div class="field">
           <label id="thanOrTempoLabel">Than</label>
-          <input type="text" id="than" placeholder="e.g. 80" onkeydown="handleThanEnter(event)">
+          <div class="input-group">
+            <input type="text" id="than" placeholder="e.g. 80" onkeydown="handleThanEnter(event)">
+            <button type="button" class="mini-btn" id="tempoPopBtn" style="display:none;" onclick="openSearchPopup('tempo')">🔍</button>
+          </div>
         </div>
       </div>
 
@@ -503,6 +506,7 @@ const STORAGE_MASTER_KEY = "ht_master_cache";
 const STORAGE_DATA_KEY = "ht_cloud_records";
 const STORAGE_PARTY_GRP_KEY = "ht_party_wa_groups";
 const STORAGE_PRESS_KEY = "ht_press_master";
+const STORAGE_TEMPO_KEY = "ht_tempo_master";
 const STORAGE_PENDING_KEY = "ht_pending_queue";
 
 let entryMode = "PAVATI";
@@ -554,19 +558,49 @@ function formatDoPhotoStatusLabel(sp) {
 function setEntryMode(mode) {
   entryMode = mode === "DO" ? "DO" : "PAVATI";
   const isDo = entryMode === "DO";
+  const thanInp = document.getElementById("than");
+  const tempoBtn = document.getElementById("tempoPopBtn");
 
   document.getElementById("modePavatiBtn").classList.toggle("active", !isDo);
   document.getElementById("modeDoBtn").classList.toggle("active", isDo);
   document.getElementById("formHeading").textContent = isDo ? "D.O. ENTRY" : "OPEN BALE PAVATI ENTRY";
   document.getElementById("docNoLabel").textContent = isDo ? "DO NO. (Unique Serial)" : "Pavati No. (Unique Serial)";
-  document.getElementById("thanOrTempoLabel").textContent = isDo ? "Tempo No." : "Than";
-  document.getElementById("than").placeholder = isDo ? "e.g. MH-41-AB-1234" : "e.g. 80";
+  document.getElementById("thanOrTempoLabel").textContent = isDo ? "Tempo No. (Tap for List)" : "Than";
+
+  if (isDo) {
+    thanInp.readOnly = true;
+    thanInp.classList.add("picker-input");
+    thanInp.placeholder = "Tap for Tempo List";
+    thanInp.onclick = function () { openSearchPopup("tempo"); };
+    thanInp.onkeydown = null;
+    tempoBtn.style.display = "inline-block";
+  } else {
+    thanInp.readOnly = false;
+    thanInp.classList.remove("picker-input");
+    thanInp.placeholder = "e.g. 80";
+    thanInp.onclick = null;
+    thanInp.onkeydown = function (e) { handleThanEnter(e); };
+    tempoBtn.style.display = "none";
+  }
+
   document.getElementById("doExtraFields").style.display = isDo ? "block" : "none";
   document.getElementById("saveBtn").textContent = isDo ? "SAVE D.O. & SYNC" : "SAVE PAVATI & SYNC";
   document.getElementById("recentHeading").textContent = isDo ? "Recent DO Entries" : "Recent Open Entries";
 
   applyNextSerialPno();
   renderRecent();
+}
+
+function handleThanOrTempoNext(e) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    if (entryMode === "DO") {
+      openSearchPopup("tempo");
+    } else {
+      const el = document.getElementById("than");
+      if (el) el.focus();
+    }
+  }
 }
 
 function switchTab(tab) {
@@ -641,7 +675,7 @@ function daysPendingCount(dmy) {
   const dt = parseDmyDate(dmy);
   if (!dt) return 0;
   const now = new Date();
-  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayMidnight = new Date(now.getFullYear(), now.month(), now.getDate());
   const diff = Math.floor((todayMidnight - dt) / (1000 * 60 * 60 * 24));
   return diff > 0 ? diff : 0;
 }
@@ -739,6 +773,25 @@ function rememberPressName(pressName) {
   }
 }
 
+function getTempoList() {
+  try {
+    const arr = JSON.parse(localStorage.getItem(STORAGE_TEMPO_KEY) || "[]");
+    return cleanStrList(arr);
+  } catch (e) {
+    return [];
+  }
+}
+
+function rememberTempoName(tempoName) {
+  const tm = String(tempoName || "").trim();
+  if (!tm) return;
+  const list = getTempoList();
+  if (!list.includes(tm)) {
+    list.push(tm);
+    localStorage.setItem(STORAGE_TEMPO_KEY, JSON.stringify(list));
+  }
+}
+
 function cleanStrList(arr) {
   if (!Array.isArray(arr)) return [];
   const out = [];
@@ -790,6 +843,7 @@ function mergeMasterToCache(masterObj) {
     if (!cache.qualities.includes(q)) cache.qualities.push(q);
   });
   cleanStrList(src.presses).forEach(pr => rememberPressName(pr));
+  cleanStrList(src.tempos).forEach(tm => rememberTempoName(tm));
 
   if (src.phones && typeof src.phones === "object") {
     for (const [k, v] of Object.entries(src.phones)) {
@@ -803,7 +857,7 @@ function mergeMasterToCache(masterObj) {
   localStorage.setItem(STORAGE_MASTER_KEY, JSON.stringify(cache));
 }
 
-function rememberMaster(party, token, quality, pressName) {
+function rememberMaster(party, token, quality, pressName, tempoName) {
   const cache = getMasterCache();
   const p = String(party || "").trim();
   const t = String(token || "").trim();
@@ -813,6 +867,7 @@ function rememberMaster(party, token, quality, pressName) {
   if (q && !cache.qualities.includes(q)) cache.qualities.push(q);
   localStorage.setItem(STORAGE_MASTER_KEY, JSON.stringify(cache));
   if (pressName) rememberPressName(pressName);
+  if (tempoName) rememberTempoName(tempoName);
 }
 
 function getStoredRecords() {
@@ -827,7 +882,9 @@ function getStoredRecords() {
 function saveStoredRecords(recs) {
   const list = Array.isArray(recs) ? recs : [];
   list.forEach(r => {
-    if (r && r.press_name) rememberPressName(r.press_name);
+    if (!r) return;
+    if (r.press_name) rememberPressName(r.press_name);
+    if (isDoRecord(r) && r.than) rememberTempoName(r.than);
   });
   localStorage.setItem(STORAGE_DATA_KEY, JSON.stringify(list));
 }
@@ -954,7 +1011,11 @@ function applyNextSerialPno(recordsArr) {
     }
   }
   const pnoEl = document.getElementById("p_no");
-  pnoEl.value = maxNo > 0 ? String(maxNo + 1) : "1";
+  if (maxNo > 0) {
+    pnoEl.value = String(maxNo + 1);
+  } else {
+    pnoEl.value = "1";
+  }
 }
 
 async function pullFromCloud(silent = true) {
@@ -993,11 +1054,12 @@ async function pullFromCloud(silent = true) {
       renderDoReportTab();
 
       const mCache = getMasterCache();
+      const tCount = getTempoList().length;
       const qCount = getPendingQueue().length;
       document.getElementById("syncMeta").textContent =
-        `P:${mCache.parties.length} • T:${mCache.tokens.length} • Q:${mCache.qualities.length} • ${mergedRecs.length} Rows` + (qCount ? ` • ${qCount} Pending` : "");
+        `P:${mCache.parties.length} • T:${mCache.tokens.length} • Q:${mCache.qualities.length} • Tempo:${tCount} • ${mergedRecs.length} Rows` + (qCount ? ` • ${qCount} Pending` : "");
       if (!silent) {
-        setStatus(`Synced! Party:${mCache.parties.length}, Token:${mCache.tokens.length}, Quality:${mCache.qualities.length}, Data:${mergedRecs.length}`, "#d4edda");
+        setStatus(`Synced! Party:${mCache.parties.length}, Token:${mCache.tokens.length}, Quality:${mCache.qualities.length}, Tempo:${tCount}`, "#d4edda");
       }
     } else {
       throw new Error((data && data.message) || "Cloud sync failed");
@@ -1729,11 +1791,12 @@ function openSearchPopup(type) {
     document.activeElement.blur();
   }
   popupType = type;
-  const nextMap = { party: "token", token: "quality", quality: "bales", press: "bales" };
+  const nextMap = { party: "token", token: "quality", quality: "bales", tempo: "press_name", press: "bales" };
   const titleMap = {
     party: "Select Party Name",
     token: "Select Token No",
     quality: "Select Quality",
+    tempo: "Select Tempo No.",
     press: "Select Press Name"
   };
   popupNextField = nextMap[type] || "bales";
@@ -1751,6 +1814,8 @@ function filterPopupList() {
   let all = [];
   if (popupType === "press") {
     all = getPressList().slice().sort((a, b) => a.localeCompare(b));
+  } else if (popupType === "tempo") {
+    all = getTempoList().slice().sort((a, b) => a.localeCompare(b));
   } else {
     const cache = getMasterCache();
     const keyMap = { party: "parties", token: "tokens", quality: "qualities" };
@@ -1806,11 +1871,16 @@ function pickPopupValue(val) {
   if (popupType === "press") {
     document.getElementById("press_name").value = val;
     rememberPressName(val);
+  } else if (popupType === "tempo") {
+    document.getElementById("than").value = val;
+    rememberTempoName(val);
   } else {
     document.getElementById(popupType).value = val;
   }
   closeModal("searchModal");
-  if (popupNextField === "bales") {
+  if (popupNextField === "press_name") {
+    openSearchPopup("press");
+  } else if (popupNextField === "bales") {
     const balesEl = document.getElementById("bales");
     if (balesEl) balesEl.focus();
   }
@@ -2204,6 +2274,7 @@ function resetMobileApp() {
   localStorage.removeItem(STORAGE_MASTER_KEY);
   localStorage.removeItem(STORAGE_DATA_KEY);
   localStorage.removeItem(STORAGE_PRESS_KEY);
+  localStorage.removeItem(STORAGE_TEMPO_KEY);
   localStorage.removeItem(STORAGE_PENDING_KEY);
   document.getElementById("dataFilterInp").value = "";
   document.getElementById("v_date").value = todayStr();
@@ -2219,6 +2290,13 @@ function resetMobileApp() {
 }
 
 async function submitEntry() {
+  const apiUrl = (localStorage.getItem(STORAGE_URL_KEY) || "").trim();
+  if (!apiUrl) {
+    toggleSettings();
+    setStatus("Pehle ⚙️ URL me Google Apps Script URL dalein!", "#ffcccc");
+    return;
+  }
+
   const isDo = entryMode === "DO";
   const docLabel = isDo ? "DO NO." : "Pavati No.";
   const pnoVal = document.getElementById("p_no").value.trim();
@@ -2236,6 +2314,7 @@ async function submitEntry() {
   }
 
   const totalBalesVal = parseInt(document.getElementById("bales").value, 10) || 0;
+  const tempoVal = isDo ? document.getElementById("than").value.trim() : "";
   const payload = {
     sync_id: "MOB-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
     entry_type: entryMode,
@@ -2255,16 +2334,6 @@ async function submitEntry() {
 
   if (!payload.party || !payload.bales || !payload.bale_no) {
     setStatus("Party, Total Bales aur Bale No zaroori hai!", "#ffcccc");
-    return;
-  }
-
-  const apiUrl = (localStorage.getItem(STORAGE_URL_KEY) || "").trim();
-  if (!apiUrl) {
-    rememberMaster(payload.party, payload.token, payload.quality, payload.press_name);
-    prependStoredRecord(payload);
-    enqueuePendingPayload(payload);
-    setStatus(`Saved locally! ${docLabel} ${payload.p_no} (URL set karne par sync hoga).`, "#fff3cd");
-    clearForm();
     return;
   }
 
@@ -2301,19 +2370,19 @@ async function submitEntry() {
     });
     const json = await res.json();
     if (json.status === "ok") {
-      rememberMaster(payload.party, payload.token, payload.quality, payload.press_name);
+      rememberMaster(payload.party, payload.token, payload.quality, payload.press_name, tempoVal);
       prependStoredRecord(payload);
       setStatus(`Saved! ${docLabel} ${payload.p_no} sync ho gaya.`, "#d4edda");
       clearForm();
     } else {
-      rememberMaster(payload.party, payload.token, payload.quality, payload.press_name);
+      rememberMaster(payload.party, payload.token, payload.quality, payload.press_name, tempoVal);
       prependStoredRecord(payload);
       enqueuePendingPayload(payload);
       setStatus("Saved locally (Cloud retry queued): " + (json.message || "Sync failed"), "#fde68a");
       clearForm();
     }
   } catch (err) {
-    rememberMaster(payload.party, payload.token, payload.quality, payload.press_name);
+    rememberMaster(payload.party, payload.token, payload.quality, payload.press_name, tempoVal);
     prependStoredRecord(payload);
     enqueuePendingPayload(payload);
     setStatus("Saved offline! Net aane par sync hoga: " + err.message, "#fde68a");
