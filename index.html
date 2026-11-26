@@ -86,9 +86,7 @@
   .preview-box { background: #dcffdc !important; color: #c0392b !important; }
   .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .btn-save { width: 100%; background: #28a745; color: #fff; border: none; border-radius: 8px; padding: 13px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 6px; }
-  .btn-row-sub { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
-  .btn-clear { width: 100%; background: #ffc107; color: #000; border: none; border-radius: 8px; padding: 10px; font-size: 13px; font-weight: bold; cursor: pointer; }
-  .btn-reset { width: 100%; background: #dc3545; color: #fff; border: none; border-radius: 8px; padding: 10px; font-size: 13px; font-weight: bold; cursor: pointer; }
+  .btn-clear { width: 100%; background: #ffc107; color: #000; border: none; border-radius: 8px; padding: 11px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 8px; }
   .status { margin-top: 10px; text-align: center; font-size: 13px; font-weight: bold; min-height: 20px; color: #fff3cd; }
   .settings-box { display: none; background: #fff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
   .settings-box input { width: 100%; padding: 8px; border: 1px solid #94a3b8; border-radius: 6px; font-size: 13px; margin: 6px 0 10px; }
@@ -254,10 +252,7 @@
       </div>
 
       <button type="button" class="btn-save" id="saveBtn" onclick="submitEntry()">SAVE PAVATI & SYNC</button>
-      <div class="btn-row-sub">
-        <button type="button" class="btn-clear" onclick="clearForm()">CLEAR</button>
-        <button type="button" class="btn-reset" onclick="resetMobileApp()">RESET APP</button>
-      </div>
+      <button type="button" class="btn-clear" onclick="clearForm()">CLEAR</button>
       <div class="status" id="statusMsg"></div>
     </div>
 
@@ -381,7 +376,7 @@
         </select>
       </div>
       <div class="dash-filters">
-        <input type="text" id="doSearchInp" placeholder="Search DO / Party / Press..." oninput="renderDoReportTab()" style="grid-column: 1 / -1;">
+        <input type="text" id="doSearchInp" placeholder="Search DO / Party / Token / Press..." oninput="renderDoReportTab()" style="grid-column: 1 / -1;">
       </div>
       <div id="doTabSummary" style="font-size:12px;font-weight:bold;color:#1f497d;margin-bottom:8px;">Showing: 0 DO • Total: 0 • OK: 0 • Pending: 0</div>
       <div class="dash-btn-row">
@@ -400,7 +395,7 @@
 
     <div class="dash-box">
       <div class="dash-box-head">
-        <h3>DO Entries (Tap to Set OK / Pending Bales)</h3>
+        <h3>DO Entries (Tap to View Token & Set OK / Pending)</h3>
         <small style="color:#64748b;font-weight:bold;">Partial Allowed</small>
       </div>
       <div id="doReportList"><div style="color:#64748b;font-size:12px;">Koi DO entry nahi hai.</div></div>
@@ -415,7 +410,8 @@
       <h3 id="doStatusModalTitle">DO Report Status</h3>
       <button type="button" class="close-x" onclick="closeModal('doStatusModal')">✕</button>
     </div>
-    <div id="doStatusInfoText" style="font-size:13px;font-weight:bold;color:#1f497d;margin-bottom:10px;"></div>
+    <div id="doStatusTokenBadge" style="background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;border-radius:7px;padding:8px 10px;font-size:13px;font-weight:bold;margin-bottom:8px;"></div>
+    <div id="doStatusInfoText" style="font-size:12px;font-weight:bold;color:#334155;margin-bottom:10px;"></div>
     <div class="slip-cfg-box">
       <label>Kitni Bales OK ho gayi hain? (0 se Total Bales ke beech):</label>
       <input type="number" id="doOkBalesInput" min="0" inputmode="numeric" oninput="previewDoSplit()">
@@ -1073,8 +1069,10 @@ function openDoStatusModalByRecord(target) {
   if (!target) return;
   activeDoEditItem = target;
   const split = getDoSplit(target);
+  const tokenName = String(target.token || "").trim() || "-";
 
   document.getElementById("doStatusModalTitle").textContent = `DO-${target.p_no || "-"} • ${target.party}`;
+  document.getElementById("doStatusTokenBadge").textContent = `Token No.: ${tokenName}`;
   document.getElementById("doStatusInfoText").textContent =
     `Total DO Bales: ${split.total} | Bales: ${target.bale_no || "-"} | Press: ${target.press_name || "-"}`;
 
@@ -1744,7 +1742,7 @@ function sendDoReportWhatsApp() {
     totalB += sp.total;
     okB += sp.ok;
     pendB += sp.pending;
-    lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | Bales:${r.bale_no} | Press:${r.press_name || "-"} | Total:${sp.total} | *${formatDoPhotoStatusLabel(sp)}*`);
+    lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | Token:${r.token || "-"} | Bales:${r.bale_no} | Press:${r.press_name || "-"} | Total:${sp.total} | *${formatDoPhotoStatusLabel(sp)}*`);
   }
   lines.push("--------------------------------");
   lines.push(`*TOTAL (${doRows.length}):* *${totalB} Bales* | *OK:* *${okB}* | *PENDING:* *${pendB}*`);
@@ -1772,7 +1770,7 @@ function sendDashboardWhatsApp() {
   for (const r of dashFilteredRows) {
     if (isDoRecord(r)) {
       const sp = getDoSplit(r);
-      lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | ${r.bale_no} | Press:${r.press_name || "-"} | *${formatDoPhotoStatusLabel(sp)}* | *${sp.total} Bales*`);
+      lines.push(`${r.v_date} | DO-${r.p_no || "-"} | ${r.party} | Token:${r.token || "-"} | ${r.bale_no} | Press:${r.press_name || "-"} | *${formatDoPhotoStatusLabel(sp)}* | *${sp.total} Bales*`);
     } else {
       const q = r.quality ? ` | Q:${r.quality}` : "";
       lines.push(`${r.v_date} | #${r.p_no || "-"} | ${r.party} | ${r.bale_no}${q} | *${r.bales} Bales*`);
@@ -2267,26 +2265,6 @@ function clearForm() {
   document.getElementById("than").value = "";
   document.getElementById("press_name").value = "";
   applyNextSerialPno();
-}
-
-function resetMobileApp() {
-  if (!confirm("Kya aap Mobile App ka local cache aur form reset karna chahte hain?")) return;
-  localStorage.removeItem(STORAGE_MASTER_KEY);
-  localStorage.removeItem(STORAGE_DATA_KEY);
-  localStorage.removeItem(STORAGE_PRESS_KEY);
-  localStorage.removeItem(STORAGE_TEMPO_KEY);
-  localStorage.removeItem(STORAGE_PENDING_KEY);
-  document.getElementById("dataFilterInp").value = "";
-  document.getElementById("v_date").value = todayStr();
-  clearForm();
-  document.getElementById("p_no").value = "1";
-  renderRecent();
-  populateDashDropdowns();
-  renderDashboard();
-  populateDoPressDropdown();
-  renderDoReportTab();
-  setStatus("Mobile App reset ho gaya hai!", "#d4edda");
-  pullFromCloud(true);
 }
 
 async function submitEntry() {
